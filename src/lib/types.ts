@@ -1,5 +1,16 @@
 import { ReactNode } from 'react';
 
+// StreakData type for activity tracking
+export type StreakData = {
+  currentStreak: number;
+  longestStreak: number;
+  lastActivityDate: string;
+  streakHistory: Array<{
+    date: string;
+    completed: boolean;
+  }>;
+};
+
 export type DogProfile = {
   id: string;
   name: string;

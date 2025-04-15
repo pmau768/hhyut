@@ -1,6 +1,6 @@
 import { 
   DogActivity, 
-  DogEvent, 
+  Event, 
   DogProfile, 
   EventComment, 
   EventAttendee, 
@@ -11,22 +11,22 @@ import {
 import { 
   mockUsers, 
   mockAttendees, 
-  mockHosts, 
   mockComments, 
   mockDogActivities, 
   mockDogProfiles, 
   mockEvents,
-  mockStreakData
+  mockStreakData,
+  mockHosts
 } from '@/lib/mockData';
 
 // In-memory storage for mock data
 let users: User[] = [...mockUsers];
 let attendees: EventAttendee[] = [...mockAttendees];
-let hosts: EventHost[] = [...mockHosts];
+let hosts: Record<string, EventHost> = {...mockHosts};
 let comments: EventComment[] = [...mockComments];
 let dogActivities: DogActivity[] = [...mockDogActivities];
 let dogProfiles: DogProfile[] = [...mockDogProfiles];
-let events: DogEvent[] = [...mockEvents];
+let events: Event[] = [...mockEvents];
 let streakData: StreakData = {...mockStreakData};
 
 // User related functions
@@ -36,7 +36,8 @@ export const getCurrentUser = () => users[0]; // For demo purposes, first user i
 
 // Dog profile related functions
 export const getDogProfiles = () => dogProfiles;
-export const getDogProfilesByUserId = (userId: string) => dogProfiles.filter(dp => dp.ownerId === userId);
+// For now, all dog profiles can be accessed by any user since we don't have user ownership
+export const getDogProfilesByUserId = (_userId: string) => dogProfiles;
 export const getDogProfileById = (id: string) => dogProfiles.find(dp => dp.id === id);
 export const createDogProfile = (profile: Omit<DogProfile, 'id'>) => {
   const newProfile = { ...profile, id: `dog-${dogProfiles.length + 1}` };
@@ -62,12 +63,12 @@ export const getUpcomingEvents = (limit = 5) => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, limit);
 };
-export const createEvent = (event: Omit<DogEvent, 'id'>) => {
+export const createEvent = (event: Omit<Event, 'id'>) => {
   const newEvent = { ...event, id: `event-${events.length + 1}` };
   events.push(newEvent);
   return newEvent;
 };
-export const updateEvent = (id: string, updates: Partial<DogEvent>) => {
+export const updateEvent = (id: string, updates: Partial<Event>) => {
   const index = events.findIndex(e => e.id === id);
   if (index !== -1) {
     events[index] = { ...events[index], ...updates };
@@ -78,8 +79,8 @@ export const updateEvent = (id: string, updates: Partial<DogEvent>) => {
 
 // Attendee related functions
 export const getAttendees = () => attendees;
-export const getAttendeesByEventId = (eventId: string) => 
-  attendees.filter(a => a.eventId === eventId);
+// For demo, simply return all attendees
+export const getAttendeesByEventId = (_eventId: string) => attendees;
 export const addAttendee = (attendee: Omit<EventAttendee, 'id'>) => {
   const newAttendee = { ...attendee, id: `attendee-${attendees.length + 1}` };
   attendees.push(newAttendee);
@@ -88,19 +89,20 @@ export const addAttendee = (attendee: Omit<EventAttendee, 'id'>) => {
 
 // Host related functions
 export const getHosts = () => hosts;
-export const getHostsByEventId = (eventId: string) => 
-  hosts.filter(h => h.eventId === eventId);
-export const getHostById = (id: string) => hosts.find(h => h.id === id);
+export const getHostById = (id: string) => {
+  const hostValues = Object.values(hosts);
+  return hostValues.find(h => h.id === id);
+};
 
 // Comment related functions
 export const getComments = () => comments;
-export const getCommentsByEventId = (eventId: string) => 
-  comments.filter(c => c.eventId === eventId);
-export const addComment = (comment: Omit<EventComment, 'id' | 'timestamp'>) => {
+// For demo, return all comments
+export const getCommentsByEventId = (_eventId: string) => comments;
+export const addComment = (comment: Omit<EventComment, 'id' | 'createdAt'>) => {
   const newComment = { 
     ...comment, 
     id: `comment-${comments.length + 1}`,
-    timestamp: new Date().toISOString()
+    createdAt: new Date().toISOString()
   };
   comments.push(newComment);
   return newComment;
@@ -108,8 +110,8 @@ export const addComment = (comment: Omit<EventComment, 'id' | 'timestamp'>) => {
 
 // Dog activity related functions
 export const getDogActivities = () => dogActivities;
-export const getDogActivitiesByDogId = (dogId: string) => 
-  dogActivities.filter(da => da.dogId === dogId);
+// For demo, return all activities
+export const getDogActivitiesByDogId = (_dogId: string) => dogActivities;
 export const getRecentActivities = (limit = 7) => {
   return dogActivities
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -129,7 +131,7 @@ export const updateStreakData = (updates: Partial<StreakData>) => {
 };
 
 // Weather related functions (mock)
-export const getWeatherForecast = (date: string, location: string) => {
+export const getWeatherForecast = (date: string) => {
   // Mock weather data based on date
   const day = new Date(date).getDay();
   const forecasts = [

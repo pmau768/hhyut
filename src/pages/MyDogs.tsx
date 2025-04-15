@@ -16,7 +16,7 @@ const initialDogs: DogProfile[] = [
     breed: "Malinois",
     energy: "High",
     isGoodOffLeash: true,
-    imageUrl: "https://images.unsplash.com/photo-1553882809-a4f57e59501d?auto=format&fit=crop&q=80&w=200&h=200",
+    avatar: "https://images.unsplash.com/photo-1553882809-a4f57e59501d?auto=format&fit=crop&q=80&w=200&h=200",
     stats: {
       totalDistance: 127.5,
       totalActivities: 48,

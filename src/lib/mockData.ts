@@ -3,7 +3,7 @@
  * This ensures consistency across components that need to use the same data
  */
 
-import { DogProfile, Event, EventCategory, EventAttendee, EventComment, User, EventStatus, DogActivity, DifficultyLevel } from './types';
+import { DogProfile, Event, EventAttendee, EventComment, User, DogActivity, StreakData } from './types';
 
 // ==================== USERS ===================
 export const mockUsers: User[] = [
@@ -11,7 +11,7 @@ export const mockUsers: User[] = [
     id: "currentUser",
     name: "Current User",
     email: "user@example.com",
-    imageUrl: "https://randomuser.me/api/portraits/lego/1.jpg",
+    avatar: "https://randomuser.me/api/portraits/lego/1.jpg",
     createdAt: new Date().toISOString(),
   }
 ];
@@ -78,7 +78,6 @@ export const mockComments: EventComment[] = [
     userId: "u1",
     userName: "John Doe",
     avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    userImageUrl: "https://randomuser.me/api/portraits/men/3.jpg",
     content: "Looking forward to this! Will be my first time joining.",
     createdAt: "2 days ago"
   },
@@ -87,7 +86,6 @@ export const mockComments: EventComment[] = [
     userId: "u2",
     userName: "Emma Smith",
     avatar: "https://randomuser.me/api/portraits/women/3.jpg",
-    userImageUrl: "https://randomuser.me/api/portraits/women/3.jpg",
     content: "The route is beautiful this time of year!",
     createdAt: "1 day ago"
   }
@@ -121,7 +119,7 @@ export const mockDogActivities: DogActivity[] = [
 ];
 
 // ==================== DOG PROFILES ===================
-export const mockDogs: DogProfile[] = [
+export const mockDogProfiles: DogProfile[] = [
   {
     id: "1",
     name: "Oliver",
@@ -130,7 +128,6 @@ export const mockDogs: DogProfile[] = [
     energy: "High",
     isGoodOffLeash: true,
     avatar: "https://images.unsplash.com/photo-1553882809-a4f57e59501d?auto=format&fit=crop&q=80&w=200&h=200",
-    imageUrl: "https://images.unsplash.com/photo-1553882809-a4f57e59501d?auto=format&fit=crop&q=80&w=200&h=200",
     stats: {
       totalDistance: 127.5,
       totalActivities: 48,
@@ -148,7 +145,6 @@ export const mockDogs: DogProfile[] = [
     energy: "High",
     isGoodOffLeash: true,
     avatar: "https://images.unsplash.com/photo-1503256207526-0d5d80fa2f47?auto=format&fit=crop&q=80&w=200&h=200",
-    imageUrl: "https://images.unsplash.com/photo-1503256207526-0d5d80fa2f47?auto=format&fit=crop&q=80&w=200&h=200",
     stats: {
       totalDistance: 85.2,
       totalActivities: 32,
@@ -366,17 +362,18 @@ export const mockNearbyEvents: Event[] = [
 ];
 
 // ==================== STREAK DATA ===================
-export const mockStreakData = {
-  currentStreak: 4,
-  highestStreak: 12,
-  lastWeekActivities: [
-    { date: "2025-04-09", completed: true },
-    { date: "2025-04-10", completed: true },
-    { date: "2025-04-11", completed: true },
-    { date: "2025-04-12", completed: true },
-    { date: "2025-04-13", completed: false },
-    { date: "2025-04-14", completed: false },
-    { date: "2025-04-15", completed: false }
+export const mockStreakData: StreakData = {
+  currentStreak: 7,
+  longestStreak: 14,
+  lastActivityDate: new Date().toISOString(),
+  streakHistory: [
+    { date: '2024-04-01', completed: true },
+    { date: '2024-04-02', completed: true },
+    { date: '2024-04-03', completed: true },
+    { date: '2024-04-04', completed: true },
+    { date: '2024-04-05', completed: true },
+    { date: '2024-04-06', completed: true },
+    { date: '2024-04-07', completed: true }
   ]
 };
 

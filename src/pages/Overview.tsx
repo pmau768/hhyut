@@ -19,7 +19,8 @@ interface DogEvent {
   title: string;
   description: string;
   shortDescription: string;
-  imageUrl: string;
+  avatar: string;
+  imageUrl?: string; // Alias for backward compatibility
   category: EventCategory;
   date: string;
   time: string;
@@ -91,6 +92,7 @@ const mockEvents: DogEvent[] = [
     title: "Morning Park Walk",
     shortDescription: "Join us for a refreshing morning walk",
     description: "Start your day right with fellow dog owners",
+    avatar: "",
     imageUrl: "/images/park-walk.jpg",
     category: "Walk",
     date: "2024-03-20",
@@ -117,6 +119,7 @@ const mockEvents: DogEvent[] = [
     title: "Beach Day with Dogs",
     shortDescription: "Fun day at the beach with dogs",
     description: "Bring your dogs to the beach for a fun day of sun, sand, and surf!",
+    avatar: "",
     imageUrl: "https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     category: "Social",
     date: fiveDays.toISOString().split('T')[0],
@@ -143,6 +146,7 @@ const mockEvents: DogEvent[] = [
     title: "Agility Training Workshop",
     shortDescription: "Basic agility training workshop",
     description: "Learn basic agility training techniques with certified trainers.",
+    avatar: "",
     imageUrl: "https://images.unsplash.com/photo-1517423568366-8b83523034fd?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     category: "Training",
     date: tomorrow.toISOString().split('T')[0],
@@ -169,6 +173,7 @@ const mockEvents: DogEvent[] = [
     title: "Evening Park Meetup",
     shortDescription: "Evening meetup at the dog park",
     description: "Casual evening meetup at the local dog park.",
+    avatar: "",
     imageUrl: "https://images.unsplash.com/photo-1610041518889-c7c02c101d94?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     category: "Social",
     date: today.toISOString().split('T')[0],
@@ -200,6 +205,7 @@ const mockDogs: DogProfile[] = [
     age: 3,
     energy: "High",
     isGoodOffLeash: true,
+    avatar: "https://images.unsplash.com/photo-1605883705077-4347b86270ad?w=300&auto=format&fit=crop&q=80&ixlib=rb-4.0.3",
     imageUrl: "https://images.unsplash.com/photo-1605883705077-4347b86270ad?w=300&auto=format&fit=crop&q=80&ixlib=rb-4.0.3",
     stats: {
       totalActivities: 84,
@@ -217,6 +223,7 @@ const mockDogs: DogProfile[] = [
     age: 2,
     energy: "Medium",
     isGoodOffLeash: true,
+    avatar: "https://images.unsplash.com/photo-1537204696486-967f1b7198c8?w=300&auto=format&fit=crop&q=80&ixlib=rb-4.0.3",
     imageUrl: "https://images.unsplash.com/photo-1537204696486-967f1b7198c8?w=300&auto=format&fit=crop&q=80&ixlib=rb-4.0.3",
     stats: {
       totalActivities: 65,
@@ -235,6 +242,7 @@ const mockNearbyEvents: DogEvent[] = [
     title: "Evening Training Session",
     shortDescription: "Training session for all skill levels",
     description: "Join us for an evening training session for dogs of all skill levels.",
+    avatar: "",
     imageUrl: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     category: "Training",
     date: tomorrow.toISOString().split('T')[0],
@@ -261,6 +269,7 @@ const mockNearbyEvents: DogEvent[] = [
     title: "Weekend Hiking Adventure",
     shortDescription: "Dog-friendly hiking trip through scenic trails",
     description: "Take your dogs on an exciting hiking adventure through scenic trails.",
+    avatar: "",
     imageUrl: "https://images.unsplash.com/photo-1515756759274-5c5605364a37?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     category: "Other",
     date: fiveDays.toISOString().split('T')[0],
@@ -290,6 +299,7 @@ const mockNearbyEvents: DogEvent[] = [
     date: tomorrow.toISOString().split('T')[0],
     time: "10:00 AM",
     location: { name: "Dogwood Park", address: "Brooklyn, NY", coordinates: { lat: 40.68, lng: -73.94 } },
+    avatar: "",
     imageUrl: "https://images.unsplash.com/photo-1601979031925-424e53b6caaa?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     category: "Social",
     tags: ["puppies", "social", "playtime"],
@@ -701,7 +711,7 @@ const Overview = () => {
                   <div key={event.id} className="flex gap-3 border-b pb-4 last:border-0 last:pb-0">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden flex-shrink-0">
                       <img 
-                        src={event.imageUrl}
+                        src={event.avatar || event.imageUrl}
                         alt={event.title}
                         className="w-full h-full object-cover"
                       />
@@ -812,7 +822,7 @@ const Overview = () => {
               <Card key={event.id} className="overflow-hidden">
                 <div className="h-32 sm:h-40 w-full overflow-hidden">
                   <img 
-                    src={event.imageUrl}
+                    src={event.avatar || event.imageUrl}
                     alt={event.title}
                     className="w-full h-full object-cover"
                   />

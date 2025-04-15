@@ -4,13 +4,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface EventCommentFormProps {
-  userImageUrl: string;
+  avatar?: string;
+  userImageUrl?: string; // Kept for backward compatibility
   userName: string;
   onSubmit: (content: string) => void;
 }
 
-const EventCommentForm = ({ userImageUrl, userName, onSubmit }: EventCommentFormProps) => {
+const EventCommentForm = ({ avatar, userImageUrl, userName, onSubmit }: EventCommentFormProps) => {
   const [content, setContent] = useState("");
+  const imageUrl = avatar || userImageUrl;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +26,7 @@ const EventCommentForm = ({ userImageUrl, userName, onSubmit }: EventCommentForm
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="flex gap-4">
         <Avatar>
-          <AvatarImage src={userImageUrl} alt={userName} />
+          <AvatarImage src={imageUrl} alt={userName} />
           <AvatarFallback>{userName[0]}</AvatarFallback>
         </Avatar>
         <div className="flex-1">

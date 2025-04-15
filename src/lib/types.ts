@@ -7,7 +7,8 @@ export type DogProfile = {
   breed: string;
   energy: 'Low' | 'Medium' | 'High';
   isGoodOffLeash: boolean;
-  imageUrl: string;
+  avatar: string;
+  imageUrl?: string; // Alias for backward compatibility
   stats: {
     totalDistance: number;
     totalActivities: number;
@@ -38,8 +39,8 @@ export type EventStatus = 'Open' | 'Full' | 'Cancelled' | 'Completed';
 export type EventHost = {
   id: string;
   name: string;
-  imageUrl: string;
-  avatar?: string; // Alias for backward compatibility
+  avatar: string;
+  imageUrl?: string; // Alias for backward compatibility
   bio?: string;
   rating?: number;
   eventsHosted?: number;
@@ -58,7 +59,8 @@ export type EventComment = {
   id: string;
   userId: string;
   userName: string;
-  userImageUrl: string;
+  avatar: string;
+  userImageUrl?: string; // Alias for backward compatibility
   content: string;
   createdAt: string;
   likes?: number;
@@ -87,7 +89,8 @@ export type Event = {
   title: string;
   description: string;
   shortDescription: string;
-  imageUrl: string;
+  avatar: string;
+  imageUrl?: string; // Alias for backward compatibility
   date: string;
   time: string;
   duration?: number; // in minutes
@@ -132,8 +135,9 @@ export type DogEvent = {
   title: string;
   description: string;
   shortDescription: string;
-  imageUrl: string;
-  category: string;
+  avatar: string;
+  imageUrl?: string; // Alias for backward compatibility
+  category: EventCategory;
   date: string;
   time: string;
   location: {
@@ -148,11 +152,11 @@ export type DogEvent = {
   attendees: EventAttendee[];
   maxAttendees: number;
   distance: number;
-  difficultyLevel: string;
+  difficultyLevel: DifficultyLevel;
   tags: string[];
-  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  status: EventStatus;
   gallery: string[];
-  comments: Comment[];
+  comments: EventComment[];
   createdAt: string;
   updatedAt: string;
 };
@@ -162,7 +166,8 @@ export type User = {
   id: string;
   email: string;
   name: string;
-  imageUrl?: string;
+  avatar?: string;
+  imageUrl?: string; // Alias for backward compatibility
   bio?: string;
   location?: string;
   website?: string;
@@ -199,7 +204,8 @@ export type UserProfileFormData = {
   bio?: string;
   location?: string;
   website?: string;
-  imageUrl?: string;
+  avatar?: string;
+  imageUrl?: string; // Alias for backward compatibility
   socialLinks?: {
     twitter?: string;
     instagram?: string;

@@ -35,6 +35,7 @@ const EventDetailsView = ({
   const currentUser = {
     id: "current-user",
     name: "John Doe",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200",
     imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200",
   };
 
@@ -47,6 +48,7 @@ const EventDetailsView = ({
       id: crypto.randomUUID(),
       userId: currentUser.id,
       userName: currentUser.name,
+      avatar: currentUser.avatar,
       userImageUrl: currentUser.imageUrl,
       content,
       createdAt: "Just now",
@@ -97,7 +99,7 @@ const EventDetailsView = ({
           {/* Hero Image */}
           <div className="aspect-video rounded-lg overflow-hidden">
             <img
-              src={event.imageUrl}
+              src={event.avatar || event.imageUrl}
               alt={event.title}
               className="w-full h-full object-cover"
             />
@@ -165,7 +167,7 @@ const EventDetailsView = ({
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full overflow-hidden">
                     <img
-                      src={event.host.imageUrl}
+                      src={event.host.avatar || event.host.imageUrl}
                       alt={event.host.name}
                       className="w-full h-full object-cover"
                     />
@@ -185,7 +187,7 @@ const EventDetailsView = ({
                       <div key={attendee.id} className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full overflow-hidden">
                           <img
-                            src={attendee.imageUrl}
+                            src={attendee.avatar || attendee.imageUrl}
                             alt={attendee.name}
                             className="w-full h-full object-cover"
                           />
@@ -217,7 +219,7 @@ const EventDetailsView = ({
                       <div key={comment.id} className="flex gap-4">
                         <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                           <img
-                            src={comment.userImageUrl}
+                            src={comment.avatar || comment.userImageUrl}
                             alt={comment.userName}
                             className="w-full h-full object-cover"
                           />

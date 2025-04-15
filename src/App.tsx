@@ -30,13 +30,13 @@ function App() {
       <div className="min-h-screen bg-background">
         <Header />
 
-        <div className="pt-16 lg:pt-8 p-4 md:p-6 lg:p-8">
+        <div className="pt-16 lg:pt-8 px-4 pb-16 lg:pb-8 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-5xl">
             <Tabs defaultValue="overview" className="w-full">
               <DesktopNavigation />
               <MobileNavigation />
 
-              <div className="mt-4 lg:mt-8">
+              <div className="mt-2 sm:mt-4 lg:mt-8">
                 <TabsContent value="overview" className="m-0">
                   <Overview />
                 </TabsContent>

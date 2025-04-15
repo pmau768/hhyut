@@ -190,25 +190,25 @@ const Overview = () => {
   const daysUntilNextEvent = nextEvent ? calculateDaysUntil(nextEvent.date) : undefined;
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Button variant="outline" className="space-x-2">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+        <Button variant="outline" className="w-full sm:w-auto space-x-2 justify-center">
           <Calendar className="h-4 w-4" />
           <span>Calendar</span>
         </Button>
       </div>
       
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
+      <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+        <TabsList className="w-full grid grid-cols-2">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="myEvents">My Events</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
             {/* Upcoming Group Walks Card - Updated props */}
-            <div className="md:col-span-2">
+            <div className="lg:col-span-2">
               <GroupWalkCard nextEvent={nextEvent} daysUntil={daysUntilNextEvent} />
             </div>
             
@@ -223,17 +223,17 @@ const Overview = () => {
           
           {/* Recent Walks */}
           <Card>
-            <CardHeader>
+            <CardHeader className="px-4 sm:px-6">
               <CardTitle className="flex items-center gap-2">
                 <Activity className="h-5 w-5" />
                 Recent Activity
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 gap-1">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
                       <MapPin className="h-5 w-5 text-primary" />
                     </div>
                     <div>
@@ -241,12 +241,12 @@ const Overview = () => {
                       <p className="text-sm text-muted-foreground">30 minutes • 2.1 km</p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">Today, 6:30 PM</p>
+                  <p className="text-sm text-muted-foreground mt-1 sm:mt-0">Today, 6:30 PM</p>
                 </div>
                 
-                <div className="flex items-center justify-between border-b pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 gap-1">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
                       <MapPin className="h-5 w-5 text-primary" />
                     </div>
                     <div>
@@ -254,12 +254,12 @@ const Overview = () => {
                       <p className="text-sm text-muted-foreground">45 minutes • 3.5 km</p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">Yesterday, 7:15 AM</p>
+                  <p className="text-sm text-muted-foreground mt-1 sm:mt-0">Yesterday, 7:15 AM</p>
                 </div>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
                       <MapPin className="h-5 w-5 text-primary" />
                     </div>
                     <div>
@@ -267,11 +267,11 @@ const Overview = () => {
                       <p className="text-sm text-muted-foreground">20 minutes • 1.2 km</p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">2 days ago, 5:45 PM</p>
+                  <p className="text-sm text-muted-foreground mt-1 sm:mt-0">2 days ago, 5:45 PM</p>
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="px-4 sm:px-6">
               <Button variant="outline" className="w-full">
                 <ExternalLink className="h-4 w-4 mr-2" />
                 View All Activities
@@ -280,40 +280,40 @@ const Overview = () => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="myEvents" className="space-y-6">
-          <h2 className="text-2xl font-semibold mb-4">My Events</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <TabsContent value="myEvents" className="space-y-4 sm:space-y-6">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-4">My Events</h2>
+          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {/* Use upcomingJoinedEvents here to only show future events user joined */}
             {upcomingJoinedEvents.map(event => (
               <Card key={event.id} className="overflow-hidden">
-                <div className="h-40 w-full overflow-hidden">
+                <div className="h-32 sm:h-40 w-full overflow-hidden">
                   <img 
                     src={event.imageUrl}
                     alt={event.title}
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-semibold text-lg">{event.title}</h3>
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="font-semibold text-base sm:text-lg line-clamp-1">{event.title}</h3>
+                    <span className="text-xs flex-shrink-0 bg-primary/10 text-primary px-2 py-1 rounded-full">
                       {event.category}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">{event.shortDescription}</p>
-                  <div className="flex items-center gap-1 mt-3 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{event.shortDescription}</p>
+                  <div className="flex items-center gap-1 mt-3 text-xs sm:text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4 flex-shrink-0" />
                     {/* Format the string date */}
-                    <span>{format(new Date(event.date + 'T00:00:00'), 'MMM d, yyyy')} • {event.time}</span>
+                    <span className="truncate">{format(new Date(event.date + 'T00:00:00'), 'MMM d, yyyy')} • {event.time}</span>
                   </div>
-                  <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
+                  <div className="flex items-center gap-1 mt-1 text-xs sm:text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4 flex-shrink-0" />
                     {/* Render location name */}
-                    <span>{event.location.name}</span> 
+                    <span className="truncate">{event.location.name}</span> 
                   </div>
                 </CardContent>
-                <CardFooter className="flex justify-between border-t p-4">
-                  <div className="text-sm text-muted-foreground">
+                <CardFooter className="flex justify-between border-t p-3 sm:p-4">
+                  <div className="text-xs sm:text-sm text-muted-foreground">
                      {/* Render attendee count */}
                     {event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}
                   </div>

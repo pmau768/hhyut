@@ -18,24 +18,24 @@ interface GroupWalkCardProps {
 
 export const GroupWalkCard = ({ nextEvent, daysUntil }: GroupWalkCardProps) => {
   return (
-    <Card className="col-span-2">
-      <CardHeader>
-        <CardTitle className="text-xl">Next Group Walk</CardTitle>
+    <Card>
+      <CardHeader className="px-4 sm:px-6 pb-3 sm:pb-6">
+        <CardTitle className="text-lg sm:text-xl">Next Group Walk</CardTitle>
         <CardDescription>
           Your next upcoming event
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 sm:px-6 pt-0">
         {nextEvent ? (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div 
-              className="h-40 bg-cover bg-center relative rounded-md overflow-hidden"
+              className="h-32 sm:h-40 bg-cover bg-center relative rounded-md overflow-hidden"
               style={{ backgroundImage: `url(${nextEvent.imageUrl || '/images/default-event.jpg'})` }}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
+              <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-bold text-white line-clamp-1">
+                  <h3 className="text-base sm:text-lg font-bold text-white line-clamp-1">
                     {nextEvent.title}
                   </h3>
                   
@@ -49,20 +49,21 @@ export const GroupWalkCard = ({ nextEvent, daysUntil }: GroupWalkCardProps) => {
                           ? "secondary"
                           : "destructive"
                       }
+                      className="text-xs"
                     >
                       {nextEvent.difficultyLevel}
                     </Badge>
                   )}
                 </div>
                 
-                <div className="text-sm text-white/80 line-clamp-1 mt-1">
+                <div className="text-xs sm:text-sm text-white/80 line-clamp-1 mt-1">
                   {nextEvent.shortDescription}
                 </div>
               </div>
               
               {/* Countdown Badge */}
               {typeof daysUntil === 'number' && (
-                <div className="absolute top-3 right-3">
+                <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
                   <Badge 
                     variant={daysUntil <= 3 ? "destructive" : daysUntil <= 7 ? "secondary" : "outline"}
                     className="text-xs font-semibold bg-black/70 backdrop-blur-sm border-none text-white"
@@ -83,27 +84,27 @@ export const GroupWalkCard = ({ nextEvent, daysUntil }: GroupWalkCardProps) => {
             </div>
             
             <div className="space-y-2">
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4 mr-2" />
-                {nextEvent.date} • {nextEvent.time}
+              <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{nextEvent.date} • {nextEvent.time}</span>
               </div>
               
-              <div className="flex items-center text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 mr-2" />
-                {nextEvent.location.name}
+              <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{nextEvent.location.name}</span>
               </div>
               
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Users className="h-4 w-4 mr-2" />
-                {nextEvent.attendees.length} / {nextEvent.maxAttendees} attendees
+              <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+                <Users className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>{nextEvent.attendees.length} / {nextEvent.maxAttendees} attendees</span>
               </div>
             </div>
             
-            <div className="flex justify-end gap-2">
-              <Button size="sm" variant="outline">
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-2 pt-1">
+              <Button size="sm" variant="outline" className="w-full sm:w-auto">
                 View Details
               </Button>
-              <Button size="sm">
+              <Button size="sm" className="w-full sm:w-auto">
                 Join Event
               </Button>
             </div>

@@ -7,6 +7,7 @@ import { ExternalLink, Activity, MapPin, Calendar, BarChart3, TrendingUp, Timer,
 import { GroupWalkCard } from "@/components/dashboard/GroupWalkCard";
 import DogProfileCard from "@/components/dashboard/DogProfileCard";
 import { Progress } from "@/components/ui/progress";
+import React, { useState, useEffect } from "react";
 
 // Mock User for filtering joined events
 const mockUser: User = {
@@ -281,10 +282,49 @@ const getStreakMessage = (streak: number) => {
 };
 
 const Overview = () => {
-  // Filter for events the user has joined (check attendees list)
-  const joinedEvents = mockEvents.filter(event => 
-    event.attendees.some(attendee => attendee.id === mockUser.id)
-  );
+  // --- Local Storage Integration ---
+  // Helper functions
+  const getLocalStorage = (key: string, fallback: any) => {
+    if (typeof window === 'undefined') return fallback;
+    const stored = localStorage.getItem(key);
+    try {
+      return stored ? JSON.parse(stored) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+  const setLocalStorage = (key: string, value: any) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(key, JSON.stringify(value));
+  };
+
+  // --- Weekly Summary State ---
+  const [weeklySummary, setWeeklySummary] = useState(() => getLocalStorage('weeklySummary', {
+    totalWalks: 4,
+    totalDistance: 8.3,
+    totalMinutes: 125,
+    walksCompletion: Math.min((4 / 7) * 100, 100),
+    distanceCompletion: Math.min((8.3 / 15) * 100, 100),
+    minutesCompletion: Math.min((125 / 210) * 100, 100),
+  }));
+  useEffect(() => {
+    setLocalStorage('weeklySummary', weeklySummary);
+  }, [weeklySummary]);
+
+  // --- Streak Data State ---
+  const [streakData, setStreakData] = useState(() => getLocalStorage('streakData', mockStreakData));
+  useEffect(() => {
+    setLocalStorage('streakData', streakData);
+  }, [streakData]);
+
+  // --- Joined Events State ---
+  const [joinedEventIds, setJoinedEventIds] = useState(() => getLocalStorage('joinedEventIds', mockDogs[0].joinedEvents));
+  useEffect(() => {
+    setLocalStorage('joinedEventIds', joinedEventIds);
+  }, [joinedEventIds]);
+
+  // Filter for events the user has joined (check attendees list or joinedEventIds)
+  const joinedEvents = mockEvents.filter(event => joinedEventIds.includes(event.id));
   
   // Function to calculate days until event (using date string)
   const calculateDaysUntil = (eventDateStr: string): number => {
@@ -322,18 +362,11 @@ const Overview = () => {
     minutes: 210, // 210 minutes per week (30 min per day)
   };
   
-  // Mock weekly summary data (in a real app, this would come from the database)
-  const weeklySummary = {
-    totalWalks: 4,
-    totalDistance: 8.3,
-    totalMinutes: 125,
-    walksCompletion: Math.min((4 / weeklyGoals.walks) * 100, 100),
-    distanceCompletion: Math.min((8.3 / weeklyGoals.distance) * 100, 100),
-    minutesCompletion: Math.min((125 / weeklyGoals.minutes) * 100, 100),
-  };
-
   // Handle joining an event
   const handleJoinEvent = (eventId: string) => {
+    if (!joinedEventIds.includes(eventId)) {
+      setJoinedEventIds([...joinedEventIds, eventId]);
+    }
     // In a real app, this would update the database
     console.log(`Joined event with ID: ${eventId}`);
   };
@@ -380,14 +413,14 @@ const Overview = () => {
                 <div className="flex items-start gap-6">
                   <div className="flex flex-col items-center">
                     <div className="text-3xl font-bold flex items-center gap-1">
-                      {mockStreakData.currentStreak} 
+                      {streakData.currentStreak} 
                       <Flame className="h-6 w-6 text-orange-500" />
                     </div>
                     <div className="text-sm text-muted-foreground">Current Streak</div>
                   </div>
                   
                   <div className="flex flex-col items-center">
-                    <div className="text-2xl font-bold">{mockStreakData.highestStreak}</div>
+                    <div className="text-2xl font-bold">{streakData.highestStreak}</div>
                     <div className="text-sm text-muted-foreground">Highest Streak</div>
                   </div>
                 </div>
@@ -395,13 +428,13 @@ const Overview = () => {
                 <div className="flex flex-col gap-2 mt-2 sm:mt-0">
                   <div className="text-sm font-medium">Last 7 Days</div>
                   <div className="flex gap-1">
-                    {mockStreakData.lastWeekActivities.map((day, index) => (
+                    {streakData.lastWeekActivities.map((day, index) => (
                       <div 
                         key={index} 
                         className={`w-8 h-8 rounded-full flex items-center justify-center 
                           ${day.completed 
                             ? 'bg-green-100 text-green-700 border border-green-300' 
-                            : index === mockStreakData.lastWeekActivities.length - 1 
+                            : index === streakData.lastWeekActivities.length - 1 
                               ? 'bg-amber-50 text-amber-700 border border-amber-300 border-dashed' 
                               : 'bg-gray-100 text-gray-400 border border-gray-200'
                           }`}
@@ -416,7 +449,7 @@ const Overview = () => {
                 <div className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 mt-4 sm:mt-0">
                   <p className="text-sm text-orange-800">
                     <span className="font-semibold">
-                      {getStreakMessage(mockStreakData.currentStreak)}
+                      {getStreakMessage(streakData.currentStreak)}
                     </span>
                     <br />
                     Take your dog for a walk today to keep your streak going!

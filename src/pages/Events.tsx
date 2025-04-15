@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Event, EventCategory, DogProfile, EventStatus } from "@/lib/types";
 import { format } from "date-fns";
 import EventCard from "@/components/events/EventCard";
@@ -250,7 +250,22 @@ const mockDogs: DogProfile[] = [
 ];
 
 const Events = () => {
-  const [events, setEvents] = useState<Event[]>(mockEvents);
+  // Local Storage Integration
+  const getLocalStorage = (key: string, fallback: Event[]) => {
+    if (typeof window === 'undefined') return fallback;
+    const stored = localStorage.getItem(key);
+    try {
+      return stored ? JSON.parse(stored) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+  const setLocalStorage = (key: string, value: Event[]) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(key, JSON.stringify(value));
+  };
+
+  const [events, setEvents] = useState<Event[]>(() => getLocalStorage('events', mockEvents));
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | 'All'>('All');
   const [_, setSortBy] = useState("date-asc");
@@ -284,6 +299,11 @@ const Events = () => {
   
   // Event creation loading state
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+
+  // Save to localStorage whenever events changes
+  useEffect(() => {
+    setLocalStorage('events', events);
+  }, [events]);
 
   const handleJoinEvent = (eventId: string) => {
     const event = events.find(e => e.id === eventId);

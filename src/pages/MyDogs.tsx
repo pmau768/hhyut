@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DogProfile, DogFormData } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -53,10 +53,30 @@ const initialDogs: DogProfile[] = [
 ];
 
 const MyDogs = () => {
-  const [dogs, setDogs] = useState<DogProfile[]>(initialDogs);
+  // Local Storage Integration
+  const getLocalStorage = (key: string, fallback: DogProfile[]) => {
+    if (typeof window === 'undefined') return fallback;
+    const stored = localStorage.getItem(key);
+    try {
+      return stored ? JSON.parse(stored) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+  const setLocalStorage = (key: string, value: DogProfile[]) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(key, JSON.stringify(value));
+  };
+
+  const [dogs, setDogs] = useState<DogProfile[]>(() => getLocalStorage('dogs', initialDogs));
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingDog, setEditingDog] = useState<DogProfile | null>(null);
   const [selectedDog, setSelectedDog] = useState<DogProfile | null>(null);
+
+  // Save to localStorage whenever dogs changes
+  useEffect(() => {
+    setLocalStorage('dogs', dogs);
+  }, [dogs]);
 
   const handleAddDog = (data: DogFormData) => {
     const newDog: DogProfile = {

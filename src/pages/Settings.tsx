@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, UserProfileFormData } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -31,9 +31,29 @@ const mockUser: User = {
 };
 
 const Settings = () => {
-  const [user, setUser] = useState<User>(mockUser);
+  // Local Storage Integration
+  const getLocalStorage = (key: string, fallback: User) => {
+    if (typeof window === 'undefined') return fallback;
+    const stored = localStorage.getItem(key);
+    try {
+      return stored ? JSON.parse(stored) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+  const setLocalStorage = (key: string, value: User) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(key, JSON.stringify(value));
+  };
+
+  const [user, setUser] = useState<User>(() => getLocalStorage('user', mockUser));
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Save to localStorage whenever user changes
+  useEffect(() => {
+    setLocalStorage('user', user);
+  }, [user]);
 
   const handleProfileUpdate = async (data: UserProfileFormData) => {
     setIsLoading(true);

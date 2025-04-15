@@ -37,6 +37,7 @@ const mockEvents: Event[] = [
         id: "currentUser", 
         name: "You",
         imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
+        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
         dogName: "Oliver",
         joinedAt: "3 days ago"
       }
@@ -103,6 +104,7 @@ const mockEvents: Event[] = [
         id: "currentUser", 
         name: "You",
         imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
+        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
         dogName: "Luna",
         joinedAt: "1 day ago"
       }
@@ -327,6 +329,7 @@ const Events = () => {
           id: selectedDogProfile.id,
           name: selectedDogProfile.name,
           imageUrl: selectedDogProfile.imageUrl,
+          avatar: selectedDogProfile.imageUrl,
           dogName: selectedDogProfile.name,
           joinedAt: new Date().toISOString(),
         };
@@ -423,7 +426,8 @@ const Events = () => {
         host: {
           id: "currentUser", // Would get from auth context
           name: "You", // Would get from user profile
-          imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200"
+          imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
+          avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200"
         },
         status: "Open" as EventStatus,
         gallery: [],

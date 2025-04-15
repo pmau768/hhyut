@@ -39,6 +39,7 @@ export type EventHost = {
   id: string;
   name: string;
   imageUrl: string;
+  avatar?: string; // Alias for backward compatibility
   bio?: string;
   rating?: number;
   eventsHosted?: number;
@@ -48,6 +49,7 @@ export type EventAttendee = {
   id: string;
   name: string;
   avatar: string;
+  imageUrl?: string; // Alias for avatar for backward compatibility
   dogName?: string;
   joinedAt?: string;
 };
@@ -129,6 +131,9 @@ export type DogEvent = {
   id: string;
   title: string;
   description: string;
+  shortDescription: string;
+  imageUrl: string;
+  category: string;
   date: string;
   time: string;
   location: {
@@ -143,6 +148,13 @@ export type DogEvent = {
   attendees: EventAttendee[];
   maxAttendees: number;
   distance: number;
+  difficultyLevel: string;
+  tags: string[];
+  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  gallery: string[];
+  comments: Comment[];
+  createdAt: string;
+  updatedAt: string;
 };
 
 // Auth Types

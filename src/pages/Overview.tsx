@@ -1,47 +1,41 @@
-import { Event, DogProfile, EventAttendee, EventHost, User } from "@/lib/types";
+import { DogProfile, EventAttendee, EventCategory, EventStatus, EventComment, DifficultyLevel } from "@/lib/types";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { format, differenceInCalendarDays, startOfWeek, endOfWeek } from "date-fns";
-import { ExternalLink, Activity, MapPin, Calendar, BarChart3, TrendingUp, Timer, Target, Navigation, Plus, Cloud, CloudRain, Sun, Wind, Flame } from "lucide-react";
+import { format, startOfWeek, endOfWeek } from "date-fns";
+import { ExternalLink, Activity, MapPin, Calendar, BarChart3, TrendingUp, Timer, Navigation, Plus, Cloud, CloudRain, Sun, Wind, Flame } from "lucide-react";
 import { GroupWalkCard } from "@/components/dashboard/GroupWalkCard";
 import DogProfileCard from "@/components/dashboard/DogProfileCard";
 import { Progress } from "@/components/ui/progress";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
-interface Comment {
-  id: string;
-  userId: string;
-  text: string;
-  timestamp: string;
+interface StreakActivity {
+  date: string;
+  completed: boolean;
 }
 
 interface DogEvent {
   id: string;
   title: string;
-  shortDescription: string;
   description: string;
+  shortDescription: string;
   imageUrl: string;
-  category: string;
+  category: EventCategory;
   date: string;
   time: string;
   distance: number;
-  difficultyLevel: string;
+  difficultyLevel: DifficultyLevel;
   tags: string[];
   maxAttendees: number;
   attendees: EventAttendee[];
-  host: {
-    id: string;
-    name: string;
-    avatar?: string;
-  };
-  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  host: EventAttendee;
+  status: EventStatus;
   gallery: string[];
-  comments: Comment[];
+  comments: EventComment[];
   location: {
     name: string;
     address: string;
-    coordinates?: {
+    coordinates: {
       lat: number;
       lng: number;
     };
@@ -67,18 +61,10 @@ interface WeeklyGoals {
 }
 
 interface WeatherData {
-  condition: 'rainy' | 'sunny' | 'cloudy';
+  condition: 'rainy' | 'sunny' | 'cloudy' | 'windy' | 'partly-cloudy';
   temperature: number;
   icon: string;
 }
-
-// Mock User for filtering joined events
-const mockUser: User = {
-  id: "user123",
-  name: "Current User",
-  email: "user@example.com",
-  createdAt: new Date().toISOString(),
-};
 
 // Mock data for events and dogs - Updated to match types
 const mockAttendees: EventAttendee[] = [
@@ -89,9 +75,9 @@ const mockAttendees: EventAttendee[] = [
 ];
 
 const mockHost: EventAttendee = {
-  id: "h1",
-  name: "Dog Lovers Club",
-  avatar: "https://randomuser.me/api/portraits/men/32.jpg"
+  id: "h2",
+  name: "Pro Trainers",
+  avatar: "https://randomuser.me/api/portraits/men/55.jpg"
 };
 
 const today = new Date();
@@ -115,7 +101,7 @@ const mockEvents: DogEvent[] = [
     maxAttendees: 10,
     attendees: mockAttendees.slice(0, 2),
     host: mockHost,
-    status: "upcoming",
+    status: "Open",
     gallery: [],
     comments: [],
     location: {
@@ -129,65 +115,80 @@ const mockEvents: DogEvent[] = [
   {
     id: "2",
     title: "Beach Day with Dogs",
-    description: "Bring your dogs to the beach for a fun day of sun, sand, and surf!",
     shortDescription: "Fun day at the beach with dogs",
-    date: fiveDays.toISOString().split('T')[0],
-    time: "10:00 AM",
-    location: { name: "Dog Beach", address: "San Diego, CA", coordinates: { lat: 32.75, lng: -117.25 } },
+    description: "Bring your dogs to the beach for a fun day of sun, sand, and surf!",
     imageUrl: "https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     category: "Social",
+    date: fiveDays.toISOString().split('T')[0],
+    time: "10:00 AM",
+    distance: 5.2,
+    difficultyLevel: "Moderate",
     tags: ["beach", "social", "fun"],
     maxAttendees: 30,
-    attendees: mockAttendees.slice(0, 3), // User is attending
+    attendees: mockAttendees.slice(0, 3),
     host: mockHost,
-    status: "upcoming",
+    status: "Open",
     gallery: [],
     comments: [],
+    location: {
+      name: "Dog Beach",
+      address: "San Diego, CA",
+      coordinates: { lat: 32.75, lng: -117.25 }
+    },
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    difficultyLevel: "Moderate",
+    updatedAt: new Date().toISOString()
   },
   {
     id: "3",
     title: "Agility Training Workshop",
-    description: "Learn basic agility training techniques with certified trainers.",
     shortDescription: "Basic agility training workshop",
-    date: tomorrow.toISOString().split('T')[0],
-    time: "3:00 PM",
-    location: { name: "Paws Training Center", address: "123 Training Rd", coordinates: { lat: 34.05, lng: -118.24 } },
+    description: "Learn basic agility training techniques with certified trainers.",
     imageUrl: "https://images.unsplash.com/photo-1517423568366-8b83523034fd?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     category: "Training",
+    date: tomorrow.toISOString().split('T')[0],
+    time: "3:00 PM",
+    distance: 3.8,
+    difficultyLevel: "Moderate",
     tags: ["agility", "training", "workshop"],
     maxAttendees: 10,
-    attendees: [], // User is NOT attending
-    host: { id: "h2", name: "Pro Trainers", imageUrl: "https://randomuser.me/api/portraits/men/55.jpg" },
-    status: "upcoming",
+    attendees: [],
+    host: mockHost,
+    status: "Open",
     gallery: [],
     comments: [],
+    location: {
+      name: "Paws Training Center",
+      address: "123 Training Rd",
+      coordinates: { lat: 34.05, lng: -118.24 }
+    },
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    difficultyLevel: "Moderate",
+    updatedAt: new Date().toISOString()
   },
   {
     id: "4",
     title: "Evening Park Meetup",
-    description: "Casual evening meetup at the local dog park.",
     shortDescription: "Evening meetup at the dog park",
-    date: today.toISOString().split('T')[0], // Today
-    time: "6:00 PM",
-    location: { name: "Riverside Dog Park", address: "Riverside Dr", coordinates: { lat: 40.82, lng: -73.95 } },
+    description: "Casual evening meetup at the local dog park.",
     imageUrl: "https://images.unsplash.com/photo-1610041518889-c7c02c101d94?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     category: "Social",
+    date: today.toISOString().split('T')[0],
+    time: "6:00 PM",
+    distance: 1.5,
+    difficultyLevel: "Easy",
     tags: ["evening", "park", "social"],
     maxAttendees: 25,
-    attendees: mockAttendees.slice(0, 4), // User is attending
+    attendees: mockAttendees.slice(0, 4),
     host: mockHost,
-    status: "upcoming",
+    status: "Open",
     gallery: [],
     comments: [],
+    location: {
+      name: "Riverside Dog Park",
+      address: "Riverside Dr",
+      coordinates: { lat: 40.82, lng: -73.95 }
+    },
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    difficultyLevel: "Easy",
+    updatedAt: new Date().toISOString()
   }
 ];
 
@@ -232,46 +233,54 @@ const mockNearbyEvents: DogEvent[] = [
   {
     id: "5",
     title: "Evening Training Session",
-    description: "Join us for an evening training session for dogs of all skill levels.",
     shortDescription: "Training session for all skill levels",
-    date: tomorrow.toISOString().split('T')[0],
-    time: "7:00 PM",
-    location: { name: "Central Park Training Area", address: "New York, NY", coordinates: { lat: 40.78, lng: -73.96 } },
+    description: "Join us for an evening training session for dogs of all skill levels.",
     imageUrl: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     category: "Training",
+    date: tomorrow.toISOString().split('T')[0],
+    time: "7:00 PM",
+    distance: 0.8,
+    difficultyLevel: "Easy",
     tags: ["training", "evening", "all-levels"],
     maxAttendees: 15,
     attendees: mockAttendees.slice(2, 3),
     host: mockHost,
-    status: "upcoming",
+    status: "Open",
     gallery: [],
     comments: [],
+    location: {
+      name: "Central Park Training Area",
+      address: "New York, NY",
+      coordinates: { lat: 40.78, lng: -73.96 }
+    },
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    difficultyLevel: "Easy",
-    distance: 0.8, // km away
+    updatedAt: new Date().toISOString()
   },
   {
     id: "6",
     title: "Weekend Hiking Adventure",
-    description: "Take your dogs on an exciting hiking adventure through scenic trails.",
     shortDescription: "Dog-friendly hiking trip through scenic trails",
+    description: "Take your dogs on an exciting hiking adventure through scenic trails.",
+    imageUrl: "https://images.unsplash.com/photo-1515756759274-5c5605364a37?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    category: "Other",
     date: fiveDays.toISOString().split('T')[0],
     time: "9:00 AM",
-    location: { name: "Bear Mountain", address: "Bear Mountain, NY", coordinates: { lat: 41.31, lng: -73.98 } },
-    imageUrl: "https://images.unsplash.com/photo-1515756759274-5c5605364a37?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    category: "Adventure",
+    distance: 15.3,
+    difficultyLevel: "Challenging",
     tags: ["hiking", "adventure", "weekend"],
     maxAttendees: 12,
     attendees: [],
-    host: { id: "h3", name: "Adventure Dogs", imageUrl: "https://randomuser.me/api/portraits/men/67.jpg" },
-    status: "upcoming",
+    host: mockHost,
+    status: "Open",
     gallery: [],
     comments: [],
+    location: {
+      name: "Bear Mountain",
+      address: "Bear Mountain, NY",
+      coordinates: { lat: 41.31, lng: -73.98 }
+    },
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    difficultyLevel: "Hard",
-    distance: 15.3, // km away
+    updatedAt: new Date().toISOString()
   },
   {
     id: "7",
@@ -287,7 +296,7 @@ const mockNearbyEvents: DogEvent[] = [
     maxAttendees: 10,
     attendees: mockAttendees.slice(0, 1),
     host: mockHost,
-    status: "upcoming",
+    status: "Open",
     gallery: [],
     comments: [],
     createdAt: new Date().toISOString(),
@@ -326,13 +335,13 @@ const mockStreakData = {
   currentStreak: 4,
   highestStreak: 12,
   lastWeekActivities: [
-    { date: "2025-04-09", completed: true },
-    { date: "2025-04-10", completed: true },
-    { date: "2025-04-11", completed: true },
-    { date: "2025-04-12", completed: true },
-    { date: "2025-04-13", completed: false },
-    { date: "2025-04-14", completed: false },
-    { date: "2025-04-15", completed: false } // today
+    { date: "2025-04-09", completed: true } as StreakActivity,
+    { date: "2025-04-10", completed: true } as StreakActivity,
+    { date: "2025-04-11", completed: true } as StreakActivity,
+    { date: "2025-04-12", completed: true } as StreakActivity,
+    { date: "2025-04-13", completed: false } as StreakActivity,
+    { date: "2025-04-14", completed: false } as StreakActivity,
+    { date: "2025-04-15", completed: false } as StreakActivity
   ]
 };
 
@@ -363,7 +372,7 @@ const Overview = () => {
   };
 
   // --- Weekly Summary State ---
-  const [weeklySummary, setWeeklySummary] = useState<WeeklySummary>({
+  const [weeklySummary] = useState<WeeklySummary>({
     totalWalks: 0,
     totalDistance: 0,
     totalMinutes: 0,
@@ -376,7 +385,7 @@ const Overview = () => {
   }, [weeklySummary]);
 
   // --- Streak Data State ---
-  const [streakData, setStreakData] = useState(() => getLocalStorage('streakData', mockStreakData));
+  const [streakData] = useState(() => getLocalStorage('streakData', mockStreakData));
   useEffect(() => {
     setLocalStorage('streakData', streakData);
   }, [streakData]);
@@ -400,7 +409,7 @@ const Overview = () => {
   const joinedEventsFiltered = mockEvents.filter(event => joinedEvents.includes(event.id));
   
   // Function to calculate days until event (using date string)
-  const calculateDaysUntilEvent = (day: string, index: number): number => {
+  const calculateDaysUntilEvent = (day: string): number => {
     const eventDate = new Date(day);
     const today = new Date();
     const diffTime = eventDate.getTime() - today.getTime();
@@ -411,15 +420,22 @@ const Overview = () => {
   const upcomingJoinedEvents = joinedEventsFiltered
     .map(event => ({
       ...event,
-      // Ensure date is parsed correctly for sorting and filtering
-      parsedDate: new Date(event.date + 'T' + event.time.replace(' ', '')) // Combine date and time for accurate comparison
+      parsedDate: new Date(event.date + 'T' + event.time.replace(' ', '')),
+      location: {
+        ...event.location,
+        coordinates: event.location.coordinates
+      },
+      host: {
+        ...event.host,
+        imageUrl: event.host.avatar // Map avatar to imageUrl for compatibility
+      }
     }))
-    .filter(event => event.parsedDate >= new Date()) // Filter out past events
-    .sort((a, b) => a.parsedDate.getTime() - b.parsedDate.getTime()); // Sort by date
+    .filter(event => event.parsedDate >= new Date())
+    .sort((a, b) => a.parsedDate.getTime() - b.parsedDate.getTime());
 
   // Get the very next event
   const nextEvent = upcomingJoinedEvents.length > 0 ? upcomingJoinedEvents[0] : null;
-  const daysUntilNextEvent = nextEvent ? calculateDaysUntilEvent(nextEvent.date, 0) : undefined;
+  const daysUntilNextEvent = nextEvent ? calculateDaysUntilEvent(nextEvent.date) : undefined;
 
   // Calculate weekly stats based on mock data
   const startOfCurrentWeek = startOfWeek(new Date());
@@ -444,24 +460,6 @@ const Overview = () => {
       return newJoinedEvents;
     });
   };
-
-  // Update host objects in other events
-  const otherEvents = mockEvents.map(event => ({
-    ...event,
-    host: { 
-      id: event.host.id, 
-      name: event.host.name, 
-      avatar: event.host.avatar 
-    },
-    status: "upcoming",
-    distance: event.distance || 5.0, // Default distance if not specified
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    location: {
-      ...event.location,
-      coordinates: event.location.coordinates || { lat: 0, lng: 0 } // Default coordinates if not specified
-    }
-  }));
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
@@ -520,7 +518,7 @@ const Overview = () => {
                 <div className="flex flex-col gap-2 mt-2 sm:mt-0">
                   <div className="text-sm font-medium">Last 7 Days</div>
                   <div className="flex gap-1">
-                    {streakData.lastWeekActivities.map((day, index) => (
+                    {streakData.lastWeekActivities.map((day: StreakActivity, index: number) => (
                       <div 
                         key={index} 
                         className={`w-8 h-8 rounded-full flex items-center justify-center 

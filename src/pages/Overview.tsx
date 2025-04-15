@@ -9,6 +9,69 @@ import DogProfileCard from "@/components/dashboard/DogProfileCard";
 import { Progress } from "@/components/ui/progress";
 import React, { useState, useEffect } from "react";
 
+interface Comment {
+  id: string;
+  userId: string;
+  text: string;
+  timestamp: string;
+}
+
+interface DogEvent {
+  id: string;
+  title: string;
+  shortDescription: string;
+  description: string;
+  imageUrl: string;
+  category: string;
+  date: string;
+  time: string;
+  distance: number;
+  difficultyLevel: string;
+  tags: string[];
+  maxAttendees: number;
+  attendees: EventAttendee[];
+  host: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  gallery: string[];
+  comments: Comment[];
+  location: {
+    name: string;
+    address: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Add interfaces at the top of the file
+interface WeeklySummary {
+  totalWalks: number;
+  totalDistance: number;
+  totalMinutes: number;
+  walksCompletion: number;
+  distanceCompletion: number;
+  minutesCompletion: number;
+}
+
+interface WeeklyGoals {
+  walks: number;
+  distance: number;
+  minutes: number;
+}
+
+interface WeatherData {
+  condition: 'rainy' | 'sunny' | 'cloudy';
+  temperature: number;
+  icon: string;
+}
+
 // Mock User for filtering joined events
 const mockUser: User = {
   id: "user123",
@@ -19,16 +82,16 @@ const mockUser: User = {
 
 // Mock data for events and dogs - Updated to match types
 const mockAttendees: EventAttendee[] = [
-  { id: "user123", name: "Current User", imageUrl: "https://randomuser.me/api/portraits/lego/1.jpg", dogName: "Max" },
-  { id: "u1", name: "Alex Johnson", imageUrl: "https://randomuser.me/api/portraits/women/12.jpg", dogName: "Buddy" },
-  { id: "u2", name: "Sarah Miller", imageUrl: "https://randomuser.me/api/portraits/women/23.jpg", dogName: "Lucy" },
-  { id: "u4", name: "Jane Thompson", imageUrl: "https://randomuser.me/api/portraits/women/45.jpg", dogName: "Charlie" },
+  { id: "1", name: "Alice Smith", avatar: "https://randomuser.me/api/portraits/women/1.jpg" },
+  { id: "2", name: "Bob Johnson", avatar: "https://randomuser.me/api/portraits/men/1.jpg" },
+  { id: "3", name: "Carol White", avatar: "https://randomuser.me/api/portraits/women/2.jpg" },
+  { id: "4", name: "David Brown", avatar: "https://randomuser.me/api/portraits/men/2.jpg" }
 ];
 
-const mockHost: EventHost = {
+const mockHost: EventAttendee = {
   id: "h1",
-  name: "Community Walks Org",
-  imageUrl: "https://randomuser.me/api/portraits/men/50.jpg"
+  name: "Dog Lovers Club",
+  avatar: "https://randomuser.me/api/portraits/men/32.jpg"
 };
 
 const today = new Date();
@@ -36,27 +99,32 @@ const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
 const twoDays = new Date(today); twoDays.setDate(today.getDate() + 2);
 const fiveDays = new Date(today); fiveDays.setDate(today.getDate() + 5);
 
-const mockEvents: Event[] = [
+const mockEvents: DogEvent[] = [
   {
     id: "1",
     title: "Morning Park Walk",
-    description: "Join us for a refreshing morning walk in Central Park with our furry friends.",
-    shortDescription: "Morning group walk at the park",
-    date: twoDays.toISOString().split('T')[0], // Format as YYYY-MM-DD string
-    time: "07:30 AM",
-    location: { name: "Central Park", address: "New York, NY", coordinates: { lat: 40.78, lng: -73.96 } },
-    imageUrl: "https://images.unsplash.com/photo-1594586019639-bed9cfd363a5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    category: "Walk", // Changed from "Group Walk"
-    tags: ["morning", "park", "easy"],
-    maxAttendees: 20,
-    attendees: mockAttendees.slice(0, 2), // User is attending
+    shortDescription: "Join us for a refreshing morning walk",
+    description: "Start your day right with fellow dog owners",
+    imageUrl: "/images/park-walk.jpg",
+    category: "Walk",
+    date: "2024-03-20",
+    time: "08:00",
+    distance: 2.5,
+    difficultyLevel: "Easy",
+    tags: ["morning", "walk", "social"],
+    maxAttendees: 10,
+    attendees: mockAttendees.slice(0, 2),
     host: mockHost,
-    status: "Open", // Changed from "upcoming"
+    status: "upcoming",
     gallery: [],
     comments: [],
-    createdAt: today.toISOString(),
-    updatedAt: today.toISOString(),
-    difficultyLevel: "Easy",
+    location: {
+      name: "Central Park",
+      address: "123 Park Avenue",
+      coordinates: { lat: 40.7829, lng: -73.9654 }
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   },
   {
     id: "2",
@@ -72,11 +140,11 @@ const mockEvents: Event[] = [
     maxAttendees: 30,
     attendees: mockAttendees.slice(0, 3), // User is attending
     host: mockHost,
-    status: "Open",
+    status: "upcoming",
     gallery: [],
     comments: [],
-    createdAt: today.toISOString(),
-    updatedAt: today.toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     difficultyLevel: "Moderate",
   },
   {
@@ -93,11 +161,11 @@ const mockEvents: Event[] = [
     maxAttendees: 10,
     attendees: [], // User is NOT attending
     host: { id: "h2", name: "Pro Trainers", imageUrl: "https://randomuser.me/api/portraits/men/55.jpg" },
-    status: "Open",
+    status: "upcoming",
     gallery: [],
     comments: [],
-    createdAt: today.toISOString(),
-    updatedAt: today.toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     difficultyLevel: "Moderate",
   },
   {
@@ -114,11 +182,11 @@ const mockEvents: Event[] = [
     maxAttendees: 25,
     attendees: mockAttendees.slice(0, 4), // User is attending
     host: mockHost,
-    status: "Open",
+    status: "upcoming",
     gallery: [],
     comments: [],
-    createdAt: today.toISOString(),
-    updatedAt: today.toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     difficultyLevel: "Easy",
   }
 ];
@@ -160,7 +228,7 @@ const mockDogs: DogProfile[] = [
   }
 ];
 
-const mockNearbyEvents: Event[] = [
+const mockNearbyEvents: DogEvent[] = [
   {
     id: "5",
     title: "Evening Training Session",
@@ -175,11 +243,11 @@ const mockNearbyEvents: Event[] = [
     maxAttendees: 15,
     attendees: mockAttendees.slice(2, 3),
     host: mockHost,
-    status: "Open",
+    status: "upcoming",
     gallery: [],
     comments: [],
-    createdAt: today.toISOString(),
-    updatedAt: today.toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     difficultyLevel: "Easy",
     distance: 0.8, // km away
   },
@@ -197,11 +265,11 @@ const mockNearbyEvents: Event[] = [
     maxAttendees: 12,
     attendees: [],
     host: { id: "h3", name: "Adventure Dogs", imageUrl: "https://randomuser.me/api/portraits/men/67.jpg" },
-    status: "Open",
+    status: "upcoming",
     gallery: [],
     comments: [],
-    createdAt: today.toISOString(),
-    updatedAt: today.toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     difficultyLevel: "Hard",
     distance: 15.3, // km away
   },
@@ -219,25 +287,21 @@ const mockNearbyEvents: Event[] = [
     maxAttendees: 10,
     attendees: mockAttendees.slice(0, 1),
     host: mockHost,
-    status: "Open",
+    status: "upcoming",
     gallery: [],
     comments: [],
-    createdAt: today.toISOString(),
-    updatedAt: today.toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     difficultyLevel: "Easy",
     distance: 4.5, // km away
   }
 ];
 
 // Mock weather data (in a real app, this would come from a weather API)
-const mockWeatherData = {
-  temperature: 18, // Celsius
-  condition: "partly-cloudy", // sunny, partly-cloudy, cloudy, rainy, windy
-  description: "Partly cloudy",
-  highTemp: 22,
-  lowTemp: 14,
-  precipitation: 20, // % chance
-  windSpeed: 12, // km/h
+const mockWeatherData: WeatherData = {
+  condition: 'sunny',
+  temperature: 22,
+  icon: 'sun',
 };
 
 const getWeatherIcon = (condition: string) => {
@@ -299,14 +363,14 @@ const Overview = () => {
   };
 
   // --- Weekly Summary State ---
-  const [weeklySummary, setWeeklySummary] = useState(() => getLocalStorage('weeklySummary', {
-    totalWalks: 4,
-    totalDistance: 8.3,
-    totalMinutes: 125,
-    walksCompletion: Math.min((4 / 7) * 100, 100),
-    distanceCompletion: Math.min((8.3 / 15) * 100, 100),
-    minutesCompletion: Math.min((125 / 210) * 100, 100),
-  }));
+  const [weeklySummary, setWeeklySummary] = useState<WeeklySummary>({
+    totalWalks: 0,
+    totalDistance: 0,
+    totalMinutes: 0,
+    walksCompletion: 0,
+    distanceCompletion: 0,
+    minutesCompletion: 0,
+  });
   useEffect(() => {
     setLocalStorage('weeklySummary', weeklySummary);
   }, [weeklySummary]);
@@ -318,27 +382,33 @@ const Overview = () => {
   }, [streakData]);
 
   // --- Joined Events State ---
-  const [joinedEventIds, setJoinedEventIds] = useState(() => getLocalStorage('joinedEventIds', mockDogs[0].joinedEvents));
+  const [joinedEvents, setJoinedEvents] = useState<string[]>([]);
   useEffect(() => {
-    setLocalStorage('joinedEventIds', joinedEventIds);
-  }, [joinedEventIds]);
+    const storedEvents = localStorage.getItem('joinedEvents');
+    if (storedEvents) {
+      try {
+        const parsedEvents = JSON.parse(storedEvents) as string[];
+        setJoinedEvents(parsedEvents);
+      } catch (error) {
+        console.error('Error parsing joined events:', error);
+        setJoinedEvents([]);
+      }
+    }
+  }, []);
 
   // Filter for events the user has joined (check attendees list or joinedEventIds)
-  const joinedEvents = mockEvents.filter(event => joinedEventIds.includes(event.id));
+  const joinedEventsFiltered = mockEvents.filter(event => joinedEvents.includes(event.id));
   
   // Function to calculate days until event (using date string)
-  const calculateDaysUntil = (eventDateStr: string): number => {
-    const eventDate = new Date(eventDateStr);
-    const currentDate = new Date();
-    // Set hours to 0 to compare dates only, not time
-    currentDate.setHours(0, 0, 0, 0);
-    eventDate.setHours(0, 0, 0, 0); // Also adjust event date if it includes time
-    
-    return differenceInCalendarDays(eventDate, currentDate);
+  const calculateDaysUntilEvent = (day: string, index: number): number => {
+    const eventDate = new Date(day);
+    const today = new Date();
+    const diffTime = eventDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
   
   // Filter and sort upcoming joined events
-  const upcomingJoinedEvents = joinedEvents
+  const upcomingJoinedEvents = joinedEventsFiltered
     .map(event => ({
       ...event,
       // Ensure date is parsed correctly for sorting and filtering
@@ -349,27 +419,49 @@ const Overview = () => {
 
   // Get the very next event
   const nextEvent = upcomingJoinedEvents.length > 0 ? upcomingJoinedEvents[0] : null;
-  const daysUntilNextEvent = nextEvent ? calculateDaysUntil(nextEvent.date) : undefined;
+  const daysUntilNextEvent = nextEvent ? calculateDaysUntilEvent(nextEvent.date, 0) : undefined;
 
   // Calculate weekly stats based on mock data
   const startOfCurrentWeek = startOfWeek(new Date());
   const endOfCurrentWeek = endOfWeek(new Date());
   
   // Weekly goals
-  const weeklyGoals = {
-    walks: 7, // 7 walks per week
-    distance: 15, // 15km per week
-    minutes: 210, // 210 minutes per week (30 min per day)
-  };
+  const [weeklyGoals] = useState<WeeklyGoals>({
+    walks: 10,
+    distance: 20,
+    minutes: 300,
+  });
   
   // Handle joining an event
-  const handleJoinEvent = (eventId: string) => {
-    if (!joinedEventIds.includes(eventId)) {
-      setJoinedEventIds([...joinedEventIds, eventId]);
-    }
-    // In a real app, this would update the database
-    console.log(`Joined event with ID: ${eventId}`);
+  const handleJoinEvent = (eventId: string): void => {
+    setJoinedEvents(prev => {
+      const newJoinedEvents = prev.includes(eventId)
+        ? prev.filter(id => id !== eventId)
+        : [...prev, eventId];
+      
+      // Update localStorage with proper type casting
+      localStorage.setItem('joinedEvents', JSON.stringify(newJoinedEvents));
+      return newJoinedEvents;
+    });
   };
+
+  // Update host objects in other events
+  const otherEvents = mockEvents.map(event => ({
+    ...event,
+    host: { 
+      id: event.host.id, 
+      name: event.host.name, 
+      avatar: event.host.avatar 
+    },
+    status: "upcoming",
+    distance: event.distance || 5.0, // Default distance if not specified
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    location: {
+      ...event.location,
+      coordinates: event.location.coordinates || { lat: 0, lng: 0 } // Default coordinates if not specified
+    }
+  }));
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
@@ -478,22 +570,22 @@ const Overview = () => {
                     {getWeatherIcon(mockWeatherData.condition)}
                     <div>
                       <div className="text-2xl font-bold">{mockWeatherData.temperature}°C</div>
-                      <div className="text-sm text-muted-foreground">{mockWeatherData.description}</div>
+                      <div className="text-sm text-muted-foreground">{mockWeatherData.condition === 'rainy' ? 'Rainy' : mockWeatherData.condition === 'sunny' ? 'Sunny' : 'Cloudy'}</div>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm flex-1">
                     <div>
                       <div className="text-muted-foreground">High / Low</div>
-                      <div className="font-medium">{mockWeatherData.highTemp}° / {mockWeatherData.lowTemp}°</div>
+                      <div className="font-medium">{mockWeatherData.temperature}°C</div>
                     </div>
                     <div>
                       <div className="text-muted-foreground">Precipitation</div>
-                      <div className="font-medium">{mockWeatherData.precipitation}%</div>
+                      <div className="font-medium">{mockWeatherData.condition === 'rainy' ? 'High' : mockWeatherData.condition === 'sunny' ? 'Low' : 'None'}</div>
                     </div>
                     <div>
                       <div className="text-muted-foreground">Wind</div>
-                      <div className="font-medium">{mockWeatherData.windSpeed} km/h</div>
+                      <div className="font-medium">{mockWeatherData.condition === 'windy' ? 'High' : 'Low'}</div>
                     </div>
                   </div>
                   

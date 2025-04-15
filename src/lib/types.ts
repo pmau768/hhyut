@@ -47,8 +47,8 @@ export type EventHost = {
 export type EventAttendee = {
   id: string;
   name: string;
-  imageUrl: string;
-  dogName: string;
+  avatar: string;
+  dogName?: string;
   joinedAt?: string;
 };
 
@@ -123,6 +123,26 @@ export type Event = {
   minAge?: number;
   breedRecommendations?: string[];
   notRecommendedFor?: string[]; // List of conditions or breeds not recommended
+};
+
+export type DogEvent = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: {
+    name: string;
+    address: string;
+    coordinates: {
+      lat: number;
+      lng: number;
+    };
+  };
+  host: EventAttendee;
+  attendees: EventAttendee[];
+  maxAttendees: number;
+  distance: number;
 };
 
 // Auth Types

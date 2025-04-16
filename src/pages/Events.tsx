@@ -13,6 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Check, AlertCircle, Dog, MapPin, Calendar } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { PlaydateMatchFinder } from "@/components/events/PlaydateMatchFinder";
+import { TrainingClassScheduler } from "@/components/events/TrainingClassScheduler";
+import { DogParkMeetups } from "@/components/events/DogParkMeetups";
+import { DogEventRecommendations } from "@/components/events/DogEventRecommendations";
 
 // Mock data - replace with actual data from your backend
 const mockEvents: Event[] = [
@@ -299,6 +304,37 @@ const Events = () => {
   
   // Event creation loading state
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+
+  const [dogs, setDogs] = useState<DogProfile[]>([]);
+
+  // Load events from localStorage on mount
+  useEffect(() => {
+    const storedEvents = getLocalStorage('events', mockEvents);
+    setEvents(storedEvents);
+    setFilteredEvents(storedEvents);
+    
+    // Load user dogs from localStorage
+    const storedDogs = localStorage.getItem('dogs');
+    if (storedDogs) {
+      try {
+        setDogs(JSON.parse(storedDogs));
+      } catch (error) {
+        console.error("Error parsing dogs from localStorage:", error);
+      }
+    }
+    
+    // Get user's location for nearby events
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        setUserLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        });
+      }, (error) => {
+        console.error("Error getting location:", error);
+      });
+    }
+  }, []);
 
   // Save to localStorage whenever events changes
   useEffect(() => {
@@ -629,12 +665,57 @@ const Events = () => {
       </div>
 
       <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="all">My Events</TabsTrigger>
-          <TabsTrigger value="nearby" className="flex items-center gap-2">
-            <MapPin className="w-3.5 h-3.5" />
+        <TabsList className="inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground mb-4 w-full sm:w-auto overflow-x-auto">
+          <TabsTrigger 
+            className="whitespace-nowrap" 
+            value="all"
+            onClick={() => {
+              setLocation("");
+              setSelectedFilters([]);
+              setActiveTab("all");
+            }}
+          >
+            All Events
+          </TabsTrigger>
+          
+          <TabsTrigger 
+            className="whitespace-nowrap" 
+            value="nearby"
+            onClick={() => setActiveTab("nearby")}
+          >
             Nearby
+          </TabsTrigger>
+          
+          <TabsTrigger 
+            className="whitespace-nowrap" 
+            value="playdates"
+            onClick={() => setActiveTab("playdates")}
+          >
+            Playdates
+          </TabsTrigger>
+          
+          <TabsTrigger 
+            className="whitespace-nowrap" 
+            value="training"
+            onClick={() => setActiveTab("training")}
+          >
+            Training
+          </TabsTrigger>
+          
+          <TabsTrigger 
+            className="whitespace-nowrap" 
+            value="dogparks"
+            onClick={() => setActiveTab("dogparks")}
+          >
+            Dog Parks
+          </TabsTrigger>
+          
+          <TabsTrigger 
+            className="whitespace-nowrap" 
+            value="recommended"
+            onClick={() => setActiveTab("recommended")}
+          >
+            For You
           </TabsTrigger>
         </TabsList>
         
@@ -747,6 +828,70 @@ const Events = () => {
               />
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="playdates" className="m-0">
+          <PlaydateMatchFinder 
+            userDogs={mockDogs} 
+            onCreatePlaydate={(dogId, matchId) => {
+              // In a real app, this would create a playdate event
+              console.log("Creating playdate", dogId, matchId);
+              alert("Playdate scheduling feature coming soon!");
+            }} 
+          />
+        </TabsContent>
+
+        <TabsContent value="training" className="m-0">
+          <TrainingClassScheduler 
+            userDogs={mockDogs}
+            onBookClass={(classId, dogId, date) => {
+              // In a real app, this would book a training class
+              console.log("Booking class", classId, dogId, date);
+              alert("Class booked successfully!");
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="dogparks" className="m-0">
+          <DogParkMeetups
+            userDogs={mockDogs}
+            userLocation={userLocation}
+            onCreateMeetup={(meetupData) => {
+              // In a real app, this would create a meetup
+              console.log("Creating meetup", meetupData);
+              alert("Meetup created successfully!");
+            }}
+            onJoinMeetup={(meetupId, dogId) => {
+              // In a real app, this would join a meetup
+              console.log("Joining meetup", meetupId, dogId);
+              alert("You've joined the meetup!");
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="recommended" className="m-0">
+          {mockDogs.length > 0 ? (
+            <DogEventRecommendations
+              dog={mockDogs[0]} // In a real app, you might let the user select which dog
+              events={events}
+              onViewEvent={handleViewDetails}
+              onJoinEvent={(eventId, dogId) => handleJoinEvent(eventId)}
+            />
+          ) : (
+            <Card className="border-dashed">
+              <CardHeader>
+                <CardTitle>No Dogs Found</CardTitle>
+                <CardDescription>
+                  Add a dog to your profile to get personalized event recommendations.
+                </CardDescription>
+              </CardHeader>
+              <CardFooter>
+                <Button variant="outline" onClick={() => window.location.href = '/my-dogs'}>
+                  Add a Dog
+                </Button>
+              </CardFooter>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 

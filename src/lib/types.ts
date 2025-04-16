@@ -28,6 +28,23 @@ export type DogProfile = {
   };
   activities: DogActivity[];
   joinedEvents: string[]; // References to event IDs
+  
+  // New playdate fields
+  playStyle?: DogPlayStyle;
+  interactionPreference?: DogInteractionPreference;
+  personality?: DogPersonality[];
+  preferredPlaymates?: {
+    breeds?: string[];
+    sizes?: DogSize[];
+    ages?: { min: number; max: number };
+    energyLevels?: ('Low' | 'Medium' | 'High')[];
+  };
+  playdateHistory?: {
+    dogId: string;
+    compatibility: number; // 1-5 rating
+    notes?: string;
+    date: string;
+  }[];
 };
 
 export type DogFormData = Omit<DogProfile, 'id' | 'stats' | 'activities' | 'joinedEvents'>;
@@ -95,6 +112,10 @@ export type DifficultyLevel = 'Easy' | 'Moderate' | 'Challenging';
 // New type for breed size
 export type DogSize = 'Small' | 'Medium' | 'Large' | 'Any';
 
+export type DogPlayStyle = 'Gentle' | 'Moderate' | 'Rough' | 'Varies';
+export type DogInteractionPreference = 'One-on-one' | 'Small groups' | 'Large groups' | 'Any';
+export type DogPersonality = 'Shy' | 'Friendly' | 'Independent' | 'Dominant' | 'Submissive';
+
 export type Event = {
   id: string;
   title: string;
@@ -139,6 +160,22 @@ export type Event = {
   minAge?: number;
   breedRecommendations?: string[];
   notRecommendedFor?: string[]; // List of conditions or breeds not recommended
+  
+  // Playdate specific fields
+  playdateType?: 'Casual' | 'Scheduled' | 'Recurring';
+  matchingPreferences?: {
+    restrictBySize?: boolean;
+    restrictByEnergy?: boolean;
+    restrictByAge?: boolean;
+    restrictByBreed?: boolean;
+    allowUnknownDogs?: boolean;
+  };
+  compatibilityRequirement?: number; // Minimum compatibility score (0-100)
+  successMetrics?: {
+    positiveInteractions: number;
+    neutralInteractions: number;
+    negativeInteractions: number;
+  };
 };
 
 export type DogEvent = {
@@ -262,3 +299,21 @@ export interface PluginManagerConfig {
   validatePlugins?: boolean;
   onError?: (error: Error) => void;
 }
+
+// Playdate Match Type
+export type PlaydateMatch = {
+  dogId: string;
+  dogName: string;
+  dogAvatar: string;
+  ownerName: string;
+  ownerAvatar: string;
+  compatibilityScore: number; // 0-100%
+  compatibilityFactors: {
+    factor: string;
+    score: number;
+    description: string;
+  }[];
+  matchReason: string;
+  lastSeen?: string;
+  mutualFriends?: number;
+};

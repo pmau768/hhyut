@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DogProfile, Event, DogAbility } from "@/lib/types";
+import { EventFormData } from "@/domains/events/types";
 import { format, addDays, addWeeks, isAfter, isBefore, isToday } from "date-fns";
 import { 
   CalendarIcon, 
@@ -30,7 +31,7 @@ import {
 
 interface TrainingClassSchedulerProps {
   userDogs: DogProfile[];
-  onBookClass: (classId: string, dogId: string, date: Date) => void;
+  onCreate: (data: EventFormData, imageFile: File | null) => void;
 }
 
 // Mock training classes
@@ -238,7 +239,7 @@ const calculateClassCompatibility = (
   };
 };
 
-const TrainingClassScheduler: React.FC<TrainingClassSchedulerProps> = ({ userDogs, onBookClass }) => {
+const TrainingClassScheduler: React.FC<TrainingClassSchedulerProps> = ({ userDogs, onCreate }) => {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [selectedDogId, setSelectedDogId] = useState<string | null>(userDogs.length > 0 ? userDogs[0].id : null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -266,9 +267,54 @@ const TrainingClassScheduler: React.FC<TrainingClassSchedulerProps> = ({ userDog
   
   const handleBookNow = () => {
     if (selectedClassId && selectedDogId && selectedDate) {
-      onBookClass(selectedClassId, selectedDogId, selectedDate);
+      const selectedTrainingClass = mockTrainingClasses.find(c => c.id === selectedClassId);
+      if (!selectedTrainingClass) return;
+      
+      // Get selected dog
+      const dog = userDogs.find(d => d.id === selectedDogId);
+      if (!dog) return;
+      
+      // Format data for event creation
+      const eventData: EventFormData = {
+        title: `${selectedTrainingClass.title} Class`,
+        shortDescription: selectedTrainingClass.shortDescription,
+        description: selectedTrainingClass.description,
+        date: format(selectedDate, 'MMM dd, yyyy'),
+        time: format(selectedDate, 'h:mm a'),
+        location: {
+          name: selectedTrainingClass.location.name,
+          address: selectedTrainingClass.location.address,
+          coordinates: selectedTrainingClass.location.coordinates
+        },
+        category: "Training",
+        avatar: selectedTrainingClass.image,
+        difficultyLevel: selectedTrainingClass.skillLevel === "Beginner" ? "Easy" :
+                        selectedTrainingClass.skillLevel === "Intermediate" ? "Moderate" : "Challenging",
+        requiredAbilities: selectedTrainingClass.abilities || [],
+        suitableEnergyLevels: ["Low", "Medium", "High"],
+        suitableDogSizes: ["Small", "Medium", "Large", "Any"],
+        minAge: selectedTrainingClass.targetDogAge?.min || 0,
+        maxAttendees: selectedTrainingClass.maxAttendees,
+        tags: [...selectedTrainingClass.tags, "training", "class"],
+        host: {
+          id: "current-user",
+          name: "Your Name",
+          avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
+        },
+        duration: selectedTrainingClass.duration,
+        breedRecommendations: selectedTrainingClass.breedRecommendations || [],
+        notRecommendedFor: []
+      };
+      
+      // Create the event through the parent component
+      onCreate(eventData, null);
+      
+      // Close the dialog
       setIsBookingDialogOpen(false);
       setSelectedDate(null);
+      
+      // Show success message (you would typically use a toast here)
+      alert(`Successfully booked ${selectedTrainingClass.title} for ${format(selectedDate, 'EEEE, MMMM d, yyyy, h:mm a')}`);
     }
   };
   

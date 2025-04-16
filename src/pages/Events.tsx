@@ -15,11 +15,8 @@ import { Check, AlertCircle, Dog, MapPin, Calendar } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from "@/components/ui/card";
-import PlaydateMatchFinder from "@/components/events/PlaydateMatchFinder";
-import TrainingClassScheduler from "@/components/events/TrainingClassScheduler";
-import DogParkMeetups from "@/components/events/DogParkMeetups";
-import DogEventRecommendations from "@/components/events/DogEventRecommendations";
 import { ROUTES } from "@/lib/services/routes";
+import { toast } from "sonner";
 
 // Import dog types
 import { DogProfile } from "@/lib/types";
@@ -73,6 +70,9 @@ const Events = () => {
   
   // Dog profiles state
   const [dogs, setDogs] = useState<DogProfile[]>([]);
+  
+  // Main tab state
+  const [mainTab, setMainTab] = useState("browse");
   
   // Load user dogs from localStorage on mount
   useEffect(() => {
@@ -156,10 +156,28 @@ const Events = () => {
   };
 
   const handleShare = (eventId: string) => {
-    console.log('Sharing event:', eventId);
+    const event = getEvent(eventId);
+    if (event) {
+      const shareData = {
+        title: event.title,
+        text: event.shortDescription || event.description,
+        url: window.location.origin + ROUTES.EVENT_DETAILS(eventId)
+      };
+
+      if (navigator.share && navigator.canShare(shareData)) {
+        navigator.share(shareData)
+          .catch((error) => console.error('Error sharing:', error));
+      } else {
+        // Fallback - copy link to clipboard
+        navigator.clipboard.writeText(shareData.url)
+          .then(() => alert('Link copied to clipboard!'))
+          .catch((error) => console.error('Error copying to clipboard:', error));
+      }
+    }
   };
 
   const handleBookmark = (eventId: string) => {
+    // TODO: Implement bookmarking functionality
     console.log('Bookmarking event:', eventId);
   };
   
@@ -247,11 +265,14 @@ const Events = () => {
           avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e" // Should be actual user avatar
         },
         duration: 60, // Default duration
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       });
+      
+      // Show success toast
+      toast.success("Event created successfully!");
     } catch (error) {
       console.error("Error creating event:", error);
+      // Show error toast
+      toast.error("Failed to create event. Please try again.");
     } finally {
       setIsCreatingEvent(false);
     }
@@ -276,12 +297,11 @@ const Events = () => {
         />
       </div>
 
-      <Tabs defaultValue="browse" className="w-full">
-        <TabsList className="grid grid-cols-5 lg:w-[600px]">
+      <Tabs value={mainTab} onValueChange={setMainTab} defaultValue="browse" className="w-full">
+        <TabsList className="grid grid-cols-4 lg:w-[500px]">
           <TabsTrigger value="browse">Browse Events</TabsTrigger>
           <TabsTrigger value="nearby">Nearby</TabsTrigger>
           <TabsTrigger value="recommended">For Your Dog</TabsTrigger>
-          <TabsTrigger value="organize">Create Event</TabsTrigger>
           <TabsTrigger value="my-events">My Events</TabsTrigger>
         </TabsList>
 
@@ -294,7 +314,10 @@ const Events = () => {
                 onLocationToggle={handleLocationToggle}
                 locationEnabled={locationEnabled}
                 onRadiusChange={setSearchRadius}
-                searchRadius={searchRadius}
+                radius={searchRadius}
+                userLocation={userLocation}
+                onSortChange={(sort) => console.log('Sort changed:', sort)}
+                onViewChange={(view) => console.log('View changed:', view)}
               />
             </div>
             
@@ -378,6 +401,7 @@ const Events = () => {
               {selectedDogForRecommendations ? (
                 <DogRecommendedEvents 
                   dog={selectedDogForRecommendations}
+                  events={filteredEvents}
                   onViewDetails={handleViewDetails}
                   onJoin={handleJoinEvent}
                 />
@@ -395,65 +419,6 @@ const Events = () => {
               </Button>
             </div>
           )}
-        </TabsContent>
-
-        <TabsContent value="organize" className="space-y-6 mt-6">
-          <div className="grid lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-3 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-card border rounded-lg p-6 flex flex-col items-center text-center space-y-4 hover:border-primary cursor-pointer">
-                  <h3 className="font-semibold text-lg">Training Class</h3>
-                  <p className="text-muted-foreground text-sm">Schedule a dog training class or workshop</p>
-                  <Button variant="outline" size="sm">Create Training Event</Button>
-                </div>
-                
-                <div className="bg-card border rounded-lg p-6 flex flex-col items-center text-center space-y-4 hover:border-primary cursor-pointer">
-                  <h3 className="font-semibold text-lg">Dog Park Meetup</h3>
-                  <p className="text-muted-foreground text-sm">Organize a social gathering at a local dog park</p>
-                  <Button variant="outline" size="sm">Create Meetup</Button>
-                </div>
-                
-                <div className="bg-card border rounded-lg p-6 flex flex-col items-center text-center space-y-4 hover:border-primary cursor-pointer">
-                  <h3 className="font-semibold text-lg">Playdate</h3>
-                  <p className="text-muted-foreground text-sm">Set up a one-on-one or small group playdate</p>
-                  <Button variant="outline" size="sm">Schedule Playdate</Button>
-                </div>
-              </div>
-              
-              <div className="bg-card border rounded-lg">
-                <Tabs defaultValue="training">
-                  <TabsList className="w-full">
-                    <TabsTrigger value="training">Training Class</TabsTrigger>
-                    <TabsTrigger value="dogpark">Dog Park Meetup</TabsTrigger>
-                    <TabsTrigger value="playdate">Playdate Matcher</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="training" className="p-4">
-                    <TrainingClassScheduler 
-                      userDogs={dogs} 
-                      onCreate={handleCreateEvent} 
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="dogpark" className="p-4">
-                    <DogParkMeetups 
-                      userDogs={dogs} 
-                      userLocation={userLocation.latitude && userLocation.longitude ? { 
-                        lat: userLocation.latitude, 
-                        lng: userLocation.longitude 
-                      } : undefined} 
-                      onCreateMeetup={handleCreateEvent}
-                      onJoinMeetup={handleJoinEvent}
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="playdate" className="p-4">
-                    <PlaydateMatchFinder userDogs={dogs} />
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </div>
-          </div>
         </TabsContent>
 
         <TabsContent value="my-events" className="space-y-6 mt-6">

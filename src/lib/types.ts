@@ -14,37 +14,40 @@ export type StreakData = {
 export type DogProfile = {
   id: string;
   name: string;
-  age: number;
   breed: string;
-  energy: 'Low' | 'Medium' | 'High';
-  isGoodOffLeash: boolean;
-  avatar: string;
-  imageUrl?: string; // Alias for backward compatibility
-  stats: {
-    totalDistance: number;
-    totalActivities: number;
-    avgDuration: number;
-    streak: number;
-  };
-  activities: DogActivity[];
-  joinedEvents: string[]; // References to event IDs
+  age: number;
+  gender: 'male' | 'female';
+  size: 'small' | 'medium' | 'large';
+  energyLevel: 'low' | 'moderate' | 'high';
+  trainingLevel: 'beginner' | 'intermediate' | 'advanced';
+  profileImage?: string;
+  description?: string;
+  owner: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   
-  // New playdate fields
-  playStyle?: DogPlayStyle;
-  interactionPreference?: DogInteractionPreference;
-  personality?: DogPersonality[];
-  preferredPlaymates?: {
-    breeds?: string[];
-    sizes?: DogSize[];
-    ages?: { min: number; max: number };
-    energyLevels?: ('Low' | 'Medium' | 'High')[];
+  // Additional properties used in the codebase
+  energy?: 'Low' | 'Medium' | 'High';
+  isGoodOffLeash?: boolean;
+  avatar?: string;
+  imageUrl?: string;
+  stats?: {
+    totalDistance?: number;
+    totalActivities?: number;
+    avgDuration?: number;
+    streak?: number;
   };
-  playdateHistory?: {
-    dogId: string;
-    compatibility: number; // 1-5 rating
-    notes?: string;
-    date: string;
-  }[];
+  playStyle?: 'Gentle' | 'Moderate' | 'Rough' | 'Varies';
+  skills?: string[];
+  likes?: string[];
+  preferredPlaymates?: {
+    sizes?: string[];
+  };
+  activities?: any[]; // Activities done by the dog
+  behaviorNotes?: string;
+  duration?: number;
+  joinedEvents?: string[]; // Events the dog has joined
+  personality?: string[]; // Dog personality traits
 };
 
 export type DogFormData = Omit<DogProfile, 'id' | 'stats' | 'activities' | 'joinedEvents'>;
@@ -60,18 +63,19 @@ export type DogActivity = {
   notes?: string;
 };
 
-export type EventCategory = 'Walk' | 'Run' | 'Training' | 'Playdate' | 'Social' | 'Other';
+export type EventCategory = 'PLAYDATE' | 'TRAINING' | 'DOG_PARK' | 'COMPETITION' | 'ADOPTION' | 'OTHER' | 
+  // Additional categories used in the codebase
+  'Run' | 'Training' | 'Social' | 'Playdate' | 'Other' | 'Walk';
 
 export type EventStatus = 'Open' | 'Full' | 'Cancelled' | 'Completed';
 
 export type EventHost = {
   id: string;
   name: string;
-  avatar: string;
-  imageUrl?: string; // Alias for backward compatibility
+  profileImage?: string;
   bio?: string;
-  rating?: number;
-  eventsHosted?: number;
+  avatar?: string;
+  imageUrl?: string;
 };
 
 export type EventAttendee = {
@@ -110,7 +114,7 @@ export type DogAbility = 'Running' | 'Sprinting' | 'Climbing' | 'Swimming' | 'Ju
 export type DifficultyLevel = 'Easy' | 'Moderate' | 'Challenging';
 
 // New type for breed size
-export type DogSize = 'Small' | 'Medium' | 'Large' | 'Any';
+export type DogSize = 'small' | 'medium' | 'large' | 'any';
 
 export type DogPlayStyle = 'Gentle' | 'Moderate' | 'Rough' | 'Varies';
 export type DogInteractionPreference = 'One-on-one' | 'Small groups' | 'Large groups' | 'Any';
@@ -120,13 +124,8 @@ export type Event = {
   id: string;
   title: string;
   description: string;
-  shortDescription: string;
-  avatar: string;
-  imageUrl?: string; // Alias for backward compatibility
-  date: string;
-  time: string;
-  duration?: number; // in minutes
-  location: {
+  shortDescription?: string;
+  location: string | {
     name: string;
     address: string;
     coordinates: {
@@ -134,48 +133,37 @@ export type Event = {
       lng: number;
     };
   };
+  date: Date | string;
+  time?: string;
   category: EventCategory;
-  tags: string[];
-  maxAttendees: number;
-  attendees: EventAttendee[];
-  host: EventHost;
-  status: EventStatus;
-  gallery: string[];
-  comments: EventComment[];
-  reactions?: EventReaction[];
-  requirements?: string[];
-  price?: number;
-  recurring?: boolean;
-  recurringPattern?: string;
-  waitlist?: EventAttendee[];
-  visibility?: 'public' | 'private' | 'invite-only';
-  createdAt: string;
-  updatedAt: string;
+  host?: EventHost;
+  requirements?: EventRequirements;
+  attendeeCount?: number;
+  tags?: string[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
   
-  // New dog requirement fields
+  // Additional properties used in the codebase
+  avatar?: string;
+  imageUrl?: string;
+  maxAttendees?: number;
+  attendees?: EventAttendee[];
+  status?: EventStatus;
+  gallery?: string[];
+  comments?: EventComment[];
+  distance?: number;
+  
+  // Dog compatibility properties
   difficultyLevel?: DifficultyLevel;
   requiredAbilities?: DogAbility[];
-  suitableEnergyLevels?: ('Low' | 'Medium' | 'High')[];
-  suitableDogSizes?: DogSize[];
+  suitableEnergyLevels?: string[];
+  suitableDogSizes?: string[];
   minAge?: number;
   breedRecommendations?: string[];
-  notRecommendedFor?: string[]; // List of conditions or breeds not recommended
+  notRecommendedFor?: string[];
   
-  // Playdate specific fields
-  playdateType?: 'Casual' | 'Scheduled' | 'Recurring';
-  matchingPreferences?: {
-    restrictBySize?: boolean;
-    restrictByEnergy?: boolean;
-    restrictByAge?: boolean;
-    restrictByBreed?: boolean;
-    allowUnknownDogs?: boolean;
-  };
-  compatibilityRequirement?: number; // Minimum compatibility score (0-100)
-  successMetrics?: {
-    positiveInteractions: number;
-    neutralInteractions: number;
-    negativeInteractions: number;
-  };
+  // Event duration in minutes
+  duration?: number;
 };
 
 export type DogEvent = {
@@ -317,3 +305,21 @@ export type PlaydateMatch = {
   lastSeen?: string;
   mutualFriends?: number;
 };
+
+export type EnergyLevel = 'low' | 'moderate' | 'high' | 'any';
+export type TrainingLevel = 'beginner' | 'intermediate' | 'advanced' | 'any';
+
+export interface EventRequirements {
+  minAge?: number;
+  maxAge?: number;
+  dogSize?: DogSize | DogSize[];
+  energyLevel?: EnergyLevel | EnergyLevel[];
+  trainingLevel?: TrainingLevel | TrainingLevel[];
+  breeds?: string[];
+}
+
+export interface ScoredEvent {
+  event: Event;
+  score: number;
+  matchReasons: string[];
+}

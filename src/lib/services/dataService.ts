@@ -20,13 +20,13 @@ import {
 } from '@/lib/mockData';
 
 // In-memory storage for mock data
-let users: User[] = [...mockUsers];
-let attendees: EventAttendee[] = [...mockAttendees];
-let hosts: Record<string, EventHost> = {...mockHosts};
-let comments: EventComment[] = [...mockComments];
-let dogActivities: DogActivity[] = [...mockDogActivities];
-let dogProfiles: DogProfile[] = [...mockDogProfiles];
-let events: Event[] = [...mockEvents];
+const users: User[] = [...mockUsers];
+const attendees: EventAttendee[] = [...mockAttendees];
+const hosts: Record<string, EventHost> = {...mockHosts};
+const comments: EventComment[] = [...mockComments];
+const dogActivities: DogActivity[] = [...mockDogActivities];
+const dogProfiles: DogProfile[] = [...mockDogProfiles];
+const events: Event[] = [...mockEvents];
 let streakData: StreakData = {...mockStreakData};
 
 // User related functions

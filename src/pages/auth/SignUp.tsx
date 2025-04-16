@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SignUpFormData } from "@/lib/types";
+import { SignUpFormData, User } from "@/lib/types";
 import SignUpForm from "@/components/auth/SignUpForm";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { setUser } from "@/lib/localStorage";
 
 const SignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,12 +14,26 @@ const SignUp = () => {
   const handleSignUp = async (data: SignUpFormData) => {
     setIsLoading(true);
     try {
-      // TODO: Implement actual signup logic when adding Supabase
-      console.log("Sign up data:", data);
+      // Create a new user object
+      const newUser: User = {
+        id: `user_${Date.now()}`,
+        email: data.email,
+        name: data.name,
+        createdAt: new Date().toISOString(),
+        preferences: {
+          emailNotifications: true,
+          pushNotifications: true,
+          eventReminders: true,
+          newsletterSubscription: false
+        }
+      };
+      
+      // Save user to localStorage
+      setUser(newUser);
       
       toast({
         title: "Account created successfully!",
-        description: "Welcome to Dog Activity Tracker.",
+        description: `Welcome to Woofer, ${data.name}!`,
       });
       
       navigate("/");

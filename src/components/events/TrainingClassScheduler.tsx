@@ -144,14 +144,14 @@ const dayToNumber = (day: string): number => {
 };
 
 const getUpcomingDates = (schedule: DaySchedule[], weeks: number = 4): Date[] => {
-  const today = new Date();
+  const date = new Date();
   const dates: Date[] = [];
   
   // Generate dates for the next 'weeks' weeks
   for (let week = 0; week < weeks; week++) {
     schedule.forEach(({ day, time }) => {
       const dayNum = dayToNumber(day);
-      let date = new Date(today);
+      const date = new Date(date);
       
       // Set to the correct day of the week
       const diff = (dayNum - date.getDay() + 7) % 7;
@@ -166,7 +166,7 @@ const getUpcomingDates = (schedule: DaySchedule[], weeks: number = 4): Date[] =>
       );
       
       // Only add future dates
-      if (isAfter(date, today)) {
+      if (isAfter(date, date)) {
         dates.push(date);
       }
     });
@@ -206,12 +206,6 @@ const calculateClassCompatibility = (
   }
   
   // Check skill level match
-  const skillLevelMap = {
-    "Beginner": ["Low", "Medium"],
-    "Intermediate": ["Medium", "High"],
-    "Advanced": ["High"]
-  };
-  
   if (trainingClass.skillLevel === "Intermediate" && dog.energy === "Low") {
     incompatibilityReasons.push("This class may be too challenging for your dog's energy level");
   }

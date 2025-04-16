@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Users, Share2, Bookmark, Clock3 } from "lucide-react";
 import { EventCompatibility } from "./EventCompatibility";
+import { formatDateForDisplay, getLocationProperty } from "@/lib/utils";
 
 interface EventCardProps {
   event: Event;
@@ -82,19 +83,22 @@ const EventCard = ({
       
       <CardContent className="p-4 flex-grow flex flex-col">
         <div className="space-y-1 mb-3">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Calendar className="h-4 w-4 mr-2" />
-            {event.date} • {event.time}
+          {/* Date and time */}
+          <div className="flex items-center text-sm text-muted-foreground mb-1">
+            <Calendar className="mr-1 h-3.5 w-3.5" />
+            {formatDateForDisplay(event.date)} • {event.time}
           </div>
-          
-          <div className="flex items-center text-sm text-muted-foreground">
-            <MapPin className="h-4 w-4 mr-2" />
-            {event.location.name}
+
+          {/* Location */}
+          <div className="flex items-center text-sm text-muted-foreground mb-1">
+            <MapPin className="mr-1 h-3.5 w-3.5" />
+            {getLocationProperty(event.location, 'name')}
           </div>
-          
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Users className="h-4 w-4 mr-2" />
-            {event.attendees.length} / {event.maxAttendees} attendees
+
+          {/* Attendees */}
+          <div className="flex items-center text-sm text-muted-foreground mb-1">
+            <Users className="mr-1 h-3.5 w-3.5" />
+            {event.attendees?.length || 0} / {event.maxAttendees || 0} attendees
           </div>
         </div>
         

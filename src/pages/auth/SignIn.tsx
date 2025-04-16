@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SignInFormData } from "@/lib/types";
+import { SignInFormData, User } from "@/lib/types";
 import SignInForm from "@/components/auth/SignInForm";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { getUser, setUser } from "@/lib/localStorage";
 
 const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,12 +14,26 @@ const SignIn = () => {
   const handleSignIn = async (data: SignInFormData) => {
     setIsLoading(true);
     try {
-      // TODO: Implement actual signin logic when adding Supabase
-      console.log("Sign in data:", data);
+      // For demo purposes, we'll just check if the email matches the default user
+      const user = getUser();
+      
+      // In a real app, we would check the password as well
+      if (data.email !== user.email) {
+        throw new Error("Invalid credentials");
+      }
+      
+      // Update last login time
+      const updatedUser: User = {
+        ...user,
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Save updated user to localStorage
+      setUser(updatedUser);
       
       toast({
         title: "Signed in successfully!",
-        description: "Welcome back to Dog Activity Tracker.",
+        description: `Welcome back, ${user.name}!`,
       });
       
       navigate("/");

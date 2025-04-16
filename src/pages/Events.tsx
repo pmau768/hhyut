@@ -13,11 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Check, AlertCircle, Dog, MapPin, Calendar } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { PlaydateMatchFinder } from "@/components/events/PlaydateMatchFinder";
-import { TrainingClassScheduler } from "@/components/events/TrainingClassScheduler";
-import { DogParkMeetups } from "@/components/events/DogParkMeetups";
-import { DogEventRecommendations } from "@/components/events/DogEventRecommendations";
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from "@/components/ui/card";
+import PlaydateMatchFinder from "@/components/events/PlaydateMatchFinder";
+import TrainingClassScheduler from "@/components/events/TrainingClassScheduler";
+import DogParkMeetups from "@/components/events/DogParkMeetups";
+import DogEventRecommendations from "@/components/events/DogEventRecommendations";
 
 // Mock data - replace with actual data from your backend
 const mockEvents: Event[] = [
@@ -255,33 +255,22 @@ const mockDogs: DogProfile[] = [
 ];
 
 const Events = () => {
-  // Local Storage Integration
-  const getLocalStorage = (key: string, fallback: Event[]) => {
-    if (typeof window === 'undefined') return fallback;
-    const stored = localStorage.getItem(key);
-    try {
-      return stored ? JSON.parse(stored) : fallback;
-    } catch {
-      return fallback;
-    }
-  };
-  const setLocalStorage = (key: string, value: Event[]) => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(key, JSON.stringify(value));
-  };
-
-  const [events, setEvents] = useState<Event[]>(() => getLocalStorage('events', mockEvents));
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<EventCategory | 'All'>('All');
-  const [_, setSortBy] = useState("date-asc");
-  const [__, setView] = useState<'grid' | 'list'>('grid');
-  const [selectedDogForRecommendations, setSelectedDogForRecommendations] = useState<DogProfile | null>(
-    mockDogs.length > 0 ? mockDogs[0] : null
-  );
+  const [events, setEvents] = useState<Event[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
+  const [selectedEventToJoin, setSelectedEventToJoin] = useState<string | null>(null);
   
-  // Location filtering state
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("date");
+  const [view, setView] = useState("cards");
+  const [searchRadius, setSearchRadius] = useState(5); // In miles
   const [locationEnabled, setLocationEnabled] = useState(false);
-  const [searchRadius, setSearchRadius] = useState(10); // 10km default radius
+  const [selectedDogForRecommendations, setSelectedDogForRecommendations] = useState<DogProfile | null>(null);
+  
+  // Location state
   const [userLocation, setUserLocation] = useState<{
     latitude: number | null;
     longitude: number | null;
@@ -291,22 +280,38 @@ const Events = () => {
     latitude: null,
     longitude: null,
     loading: false,
-    error: null,
+    error: null
   });
-  
-  // Event joining state
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
-  const [selectedDog, setSelectedDog] = useState<string | null>(null);
-  
-  // Event details state
-  const [viewingEvent, setViewingEvent] = useState<Event | null>(null);
   
   // Event creation loading state
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
-
+  
+  // Add filtered events state
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  
+  // Add active tab and filters state
+  const [activeTab, setActiveTab] = useState("all");
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  
+  // Dog profiles state
   const [dogs, setDogs] = useState<DogProfile[]>([]);
-
+  
+  // Local Storage utilities
+  const getLocalStorage = (key: string, fallback: Event[]) => {
+    if (typeof window === 'undefined') return fallback;
+    const stored = localStorage.getItem(key);
+    try {
+      return stored ? JSON.parse(stored) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+  
+  const setLocalStorage = (key: string, value: Event[]) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(key, JSON.stringify(value));
+  };
+  
   // Load events from localStorage on mount
   useEffect(() => {
     const storedEvents = getLocalStorage('events', mockEvents);
@@ -328,10 +333,17 @@ const Events = () => {
       navigator.geolocation.getCurrentPosition((position) => {
         setUserLocation({
           latitude: position.coords.latitude,
-          longitude: position.coords.longitude
+          longitude: position.coords.longitude,
+          loading: false,
+          error: null
         });
       }, (error) => {
         console.error("Error getting location:", error);
+        setUserLocation(prev => ({
+          ...prev,
+          loading: false,
+          error: error.message
+        }));
       });
     }
   }, []);
@@ -345,15 +357,15 @@ const Events = () => {
     const event = events.find(e => e.id === eventId);
     if (event) {
       setSelectedEvent(event);
-      setSelectedDog(null); // Reset selected dog
+      setSelectedEventToJoin(null); // Reset selected event
       setIsJoinDialogOpen(true);
     }
   };
 
   const handleConfirmJoin = () => {
-    if (!selectedEvent || !selectedDog) return;
+    if (!selectedEvent || !selectedEventToJoin) return;
 
-    const selectedDogProfile = mockDogs.find(d => d.id === selectedDog);
+    const selectedDogProfile = dogs.find(d => d.id === selectedEventToJoin);
     if (!selectedDogProfile) return;
 
     // Update events with new attendee
@@ -383,13 +395,13 @@ const Events = () => {
     setEvents(updatedEvents);
     setIsJoinDialogOpen(false);
     setSelectedEvent(null);
-    setSelectedDog(null);
+    setSelectedEventToJoin(null);
   };
 
   const handleViewDetails = (eventId: string) => {
     const event = events.find(e => e.id === eventId);
     if (event) {
-      setViewingEvent(event);
+      setSelectedEvent(event);
     }
   };
 
@@ -404,9 +416,9 @@ const Events = () => {
   const handleLocationToggle = (enabled: boolean) => {
     setLocationEnabled(enabled);
     
-    if (enabled && !userLocation.latitude) {
-      // Get user location when enabled
-      setUserLocation({ ...userLocation, loading: true });
+    // If enabling location, request the user's location
+    if (enabled && navigator.geolocation && !userLocation.latitude) {
+      setUserLocation(prev => ({ ...prev, loading: true, error: null }));
       
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -414,16 +426,18 @@ const Events = () => {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             loading: false,
-            error: null,
+            error: null
           });
         },
         (error) => {
+          console.error("Error getting location:", error);
           setUserLocation({
             latitude: null,
             longitude: null,
             loading: false,
-            error: `Unable to retrieve your location: ${error.message}`,
+            error: error.message
           });
+          setLocationEnabled(false); // Turn off location if there's an error
         }
       );
     }
@@ -490,34 +504,38 @@ const Events = () => {
     }
   };
 
-  if (viewingEvent) {
+  // Filter events based on search query and category
+  useEffect(() => {
+    const newFilteredEvents = events.filter(event => {
+      // Check if user has joined this event (using mock user ID "currentUser")
+      const hasJoined = event.attendees.some(attendee => attendee.id === "currentUser");
+      
+      // Filter by search query
+      const matchesSearch = searchQuery === "" || 
+        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.location.name.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Filter by category
+      const matchesCategory = selectedCategory === "All" || event.category === selectedCategory;
+      
+      // For "all" tab, show only joined events
+      return hasJoined && matchesSearch && matchesCategory;
+    });
+    
+    setFilteredEvents(newFilteredEvents);
+  }, [events, searchQuery, selectedCategory]);
+
+  if (selectedEvent) {
     return (
       <EventDetailsView
-        event={viewingEvent}
-        onBack={() => setViewingEvent(null)}
+        event={selectedEvent}
+        onBack={() => setSelectedEvent(null)}
         onJoin={handleJoinEvent}
       />
     );
   }
 
-  // Filter events based on search query and category
-  const filteredEvents = events.filter(event => {
-    // Check if user has joined this event (using mock user ID "currentUser")
-    const hasJoined = event.attendees.some(attendee => attendee.id === "currentUser");
-    
-    // Filter by search query
-    const matchesSearch = searchQuery === "" || 
-      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.location.name.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Filter by category
-    const matchesCategory = selectedCategory === "All" || event.category === selectedCategory;
-    
-    // For "all" tab, show only joined events
-    return hasJoined && matchesSearch && matchesCategory;
-  });
-  
   // Calculate days until event starts
   const calculateDaysUntil = (eventDate: string) => {
     const today = new Date();
@@ -567,7 +585,7 @@ const Events = () => {
       />
 
       {/* Dog-specific recommendations section */}
-      {mockDogs.length > 0 && (
+      {dogs.length > 0 && (
         <div className="border rounded-lg p-4 bg-muted/10">
           <div className="flex gap-2 justify-between items-center mb-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -575,9 +593,9 @@ const Events = () => {
               Personalized Recommendations
             </h2>
             
-            {mockDogs.length > 1 && (
+            {dogs.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {mockDogs.map(dog => (
+                {dogs.map(dog => (
                   <Button
                     key={dog.id}
                     variant={selectedDogForRecommendations?.id === dog.id ? "default" : "outline"}
@@ -670,7 +688,6 @@ const Events = () => {
             className="whitespace-nowrap" 
             value="all"
             onClick={() => {
-              setLocation("");
               setSelectedFilters([]);
               setActiveTab("all");
             }}
@@ -832,9 +849,8 @@ const Events = () => {
 
         <TabsContent value="playdates" className="m-0">
           <PlaydateMatchFinder 
-            userDogs={mockDogs} 
-            onCreatePlaydate={(dogId, matchId) => {
-              // In a real app, this would create a playdate event
+            userDogs={dogs} 
+            onCreatePlaydate={(dogId: string, matchId: string) => {
               console.log("Creating playdate", dogId, matchId);
               alert("Playdate scheduling feature coming soon!");
             }} 
@@ -843,9 +859,8 @@ const Events = () => {
 
         <TabsContent value="training" className="m-0">
           <TrainingClassScheduler 
-            userDogs={mockDogs}
-            onBookClass={(classId, dogId, date) => {
-              // In a real app, this would book a training class
+            userDogs={dogs}
+            onBookClass={(classId: string, dogId: string, date: Date) => {
               console.log("Booking class", classId, dogId, date);
               alert("Class booked successfully!");
             }}
@@ -854,15 +869,14 @@ const Events = () => {
 
         <TabsContent value="dogparks" className="m-0">
           <DogParkMeetups
-            userDogs={mockDogs}
-            userLocation={userLocation}
-            onCreateMeetup={(meetupData) => {
-              // In a real app, this would create a meetup
+            userDogs={dogs}
+            userLocation={userLocation.latitude && userLocation.longitude ? 
+              { lat: userLocation.latitude, lng: userLocation.longitude } : null}
+            onCreateMeetup={(meetupData: any) => {
               console.log("Creating meetup", meetupData);
               alert("Meetup created successfully!");
             }}
-            onJoinMeetup={(meetupId, dogId) => {
-              // In a real app, this would join a meetup
+            onJoinMeetup={(meetupId: string, dogId: string) => {
               console.log("Joining meetup", meetupId, dogId);
               alert("You've joined the meetup!");
             }}
@@ -870,12 +884,12 @@ const Events = () => {
         </TabsContent>
 
         <TabsContent value="recommended" className="m-0">
-          {mockDogs.length > 0 ? (
+          {dogs.length > 0 ? (
             <DogEventRecommendations
-              dog={mockDogs[0]} // In a real app, you might let the user select which dog
+              dog={dogs[0]}
               events={events}
-              onViewEvent={handleViewDetails}
-              onJoinEvent={(eventId, dogId) => handleJoinEvent(eventId)}
+              onViewEvent={(eventId: string) => handleViewDetails(eventId)}
+              onJoinEvent={(eventId: string, _dogId: string) => handleJoinEvent(eventId)}
             />
           ) : (
             <Card className="border-dashed">
@@ -908,7 +922,7 @@ const Events = () => {
                 {selectedEvent.date} at {selectedEvent.time}
               </p>
               
-              {mockDogs.length === 0 ? (
+              {dogs.length === 0 ? (
                 <div className="text-center p-4 space-y-3">
                   <AlertCircle className="w-8 h-8 text-muted-foreground mx-auto" />
                   <p className="text-muted-foreground">You need to add a dog profile first</p>
@@ -919,15 +933,15 @@ const Events = () => {
               ) : (
                 <ScrollArea className="h-[200px] rounded-md border p-4">
                   <div className="space-y-2">
-                    {mockDogs.map((dog) => (
+                    {dogs.map((dog) => (
                       <div
                         key={dog.id}
                         className={`flex items-center space-x-4 p-2 rounded-lg cursor-pointer transition-colors ${
-                          selectedDog === dog.id
+                          selectedEventToJoin === dog.id
                             ? 'bg-primary/10'
                             : 'hover:bg-muted'
                         }`}
-                        onClick={() => setSelectedDog(dog.id)}
+                        onClick={() => setSelectedEventToJoin(dog.id)}
                       >
                         <div className="w-12 h-12 rounded-full overflow-hidden">
                           <img
@@ -942,7 +956,7 @@ const Events = () => {
                             {dog.breed} • {dog.age} years
                           </p>
                         </div>
-                        {selectedDog === dog.id && (
+                        {selectedEventToJoin === dog.id && (
                           <Check className="w-5 h-5 text-primary" />
                         )}
                       </div>
@@ -960,7 +974,7 @@ const Events = () => {
                 </Button>
                 <Button
                   onClick={handleConfirmJoin}
-                  disabled={!selectedDog}
+                  disabled={!selectedEventToJoin}
                 >
                   Join Event
                 </Button>

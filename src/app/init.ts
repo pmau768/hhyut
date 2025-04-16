@@ -5,6 +5,25 @@
 
 import { getStorageItem, hasStorageItem, STORAGE_KEYS } from '@/lib/services/storage';
 import { getDogs, setDogs } from '@/domains/dogs/services/dogStorage';
+import { getUser, setUser } from '@/lib/localStorage';
+import { User } from '@/lib/types';
+
+// Default user for demo purposes
+const DEFAULT_USER: User = {
+  id: "user1",
+  email: "demo@example.com",
+  name: "Demo User",
+  avatar: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&q=80&w=200",
+  bio: "Dog lover with two energetic pups. I enjoy hiking and training with my dogs.",
+  location: "Portland, OR",
+  preferences: {
+    emailNotifications: true,
+    pushNotifications: true,
+    eventReminders: true,
+    newsletterSubscription: false
+  },
+  createdAt: new Date().toISOString(),
+};
 
 /**
  * Initialize the application
@@ -27,6 +46,12 @@ export const initializeApp = () => {
  */
 const initializeLocalStorage = () => {
   console.log('Initializing localStorage with default data...');
+  
+  // Initialize User
+  if (!hasStorageItem(STORAGE_KEYS.USER)) {
+    setUser(DEFAULT_USER);
+    console.log('User storage initialized with default data');
+  }
   
   // Initialize Dogs
   if (!hasStorageItem(STORAGE_KEYS.DOGS)) {

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import UserProfileForm from "@/components/settings/UserProfileForm";
 import NotificationSettings from "@/components/settings/NotificationSettings";
+import SignOutButton from "@/components/auth/SignOutButton";
+import { getUser, setUser as updateUserStorage } from "@/lib/localStorage";
 
 // Mock user data - replace with actual user data when adding backend
 const mockUser: User = {
@@ -31,34 +33,19 @@ const mockUser: User = {
 };
 
 const Settings = () => {
-  // Local Storage Integration
-  const getLocalStorage = (key: string, fallback: User) => {
-    if (typeof window === 'undefined') return fallback;
-    const stored = localStorage.getItem(key);
-    try {
-      return stored ? JSON.parse(stored) : fallback;
-    } catch {
-      return fallback;
-    }
-  };
-  const setLocalStorage = (key: string, value: User) => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(key, JSON.stringify(value));
-  };
-
-  const [user, setUser] = useState<User>(() => getLocalStorage('user', mockUser));
+  const [user, setUser] = useState<User>(() => getUser());
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   // Save to localStorage whenever user changes
   useEffect(() => {
-    setLocalStorage('user', user);
+    updateUserStorage(user);
   }, [user]);
 
   const handleProfileUpdate = async (data: UserProfileFormData) => {
     setIsLoading(true);
     try {
-      // TODO: Implement actual profile update logic when adding backend
+      // Update user data
       setUser((prev) => ({
         ...prev,
         ...data,
@@ -157,8 +144,16 @@ const Settings = () => {
                 </p>
                 <Button variant="outline">Export Data</Button>
               </div>
-
+              
               <div>
+                <h3 className="text-base font-medium mb-2">Sign Out</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Sign out from your account
+                </p>
+                <SignOutButton variant="outline" />
+              </div>
+
+              <div className="pt-4 border-t">
                 <h3 className="text-base font-medium text-destructive mb-2">
                   Delete Account
                 </h3>

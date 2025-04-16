@@ -5,12 +5,43 @@ import { DesktopNavigation, MobileNavigation } from "@/components/layout/Navigat
 import Overview from "@/pages/Overview";
 import MyDogs from "@/pages/MyDogs";
 import Events from "@/pages/Events";
+import EventDetail from "@/pages/EventDetail";
 import Settings from "@/pages/Settings";
 import SignIn from "@/pages/auth/SignIn";
 import SignUp from "@/pages/auth/SignUp";
-import { TAB_VALUES, getTabFromRoute } from "@/lib/services/routes";
+import NotFound from "@/pages/NotFound";
+import { ROUTES, TAB_VALUES, getTabFromRoute } from "@/lib/services/routes";
 import { useState, useEffect } from "react";
 import { getUser } from "@/lib/localStorage";
+
+// Protected route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    try {
+      // Check if user exists in localStorage
+      const user = getUser();
+      setIsAuthenticated(!!user && !!user.id);
+    } catch (error) {
+      console.error("Error checking authentication state:", error);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to={ROUTES.SIGN_IN} replace />;
+  }
+
+  return <>{children}</>;
+};
 
 // AppContent component to handle tab state based on current route
 const AppContent = () => {
@@ -57,36 +88,61 @@ const AppContent = () => {
 };
 
 function App() {
-  // Use local storage to determine authentication state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  useEffect(() => {
-    try {
-      // Check if user exists in localStorage
-      const user = getUser();
-      setIsAuthenticated(!!user && !!user.id);
-    } catch (error) {
-      console.error("Error checking authentication state:", error);
-      setIsAuthenticated(false);
-    }
-  }, []);
-
-  if (!isAuthenticated) {
-    return (
-      <Router>
-        <Routes>
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="*" element={<Navigate to="/signin" replace />} />
-        </Routes>
-      </Router>
-    );
-  }
-
   return (
     <Router>
       <Routes>
-        <Route path="*" element={<AppContent />} />
+        {/* Auth Routes */}
+        <Route path={ROUTES.SIGN_IN} element={<SignIn />} />
+        <Route path={ROUTES.SIGN_UP} element={<SignUp />} />
+        
+        {/* Protected Main App Routes */}
+        <Route 
+          path="/" 
+          element={
+            <ProtectedRoute>
+              <AppContent />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/dogs/*" 
+          element={
+            <ProtectedRoute>
+              <AppContent />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/events" 
+          element={
+            <ProtectedRoute>
+              <AppContent />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Event Details Page */}
+        <Route 
+          path="/events/:eventId" 
+          element={
+            <ProtectedRoute>
+              <EventDetail />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/settings/*" 
+          element={
+            <ProtectedRoute>
+              <AppContent />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Catch all */}
+        <Route path="/404" element={<NotFound />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
     </Router>
   );

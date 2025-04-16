@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useEvents } from "@/domains/events/hooks/useEvents";
 import { Event, EventAttendee } from "@/domains/events/types";
 import { format } from "date-fns";
 import EventCard from "@/components/events/EventCard";
 import EventFilters from "@/components/events/EventFilters";
-import EventDetailsView from "@/components/events/EventDetailsView";
 import CreateEventPostDialog from "@/components/events/CreateEventPostDialog";
 import NearbyEventsList from "@/components/events/NearbyEventsList";
 import { DogRecommendedEvents } from "@/components/events/DogRecommendedEvents";
@@ -19,25 +19,26 @@ import PlaydateMatchFinder from "@/components/events/PlaydateMatchFinder";
 import TrainingClassScheduler from "@/components/events/TrainingClassScheduler";
 import DogParkMeetups from "@/components/events/DogParkMeetups";
 import DogEventRecommendations from "@/components/events/DogEventRecommendations";
+import { ROUTES } from "@/lib/services/routes";
 
 // Import dog types
 import { DogProfile } from "@/lib/types";
 
 const Events = () => {
+  const navigate = useNavigate();
+  
   // Use our custom events hook for data and operations
   const { 
     events, 
     filteredEvents, 
     loading, 
     error, 
-    selectedEvent,
     filters,
     createEvent,
     updateEvent,
     joinEvent: handleJoinEventService,
     leaveEvent,
     getEvent,
-    selectEvent,
     updateFilters,
     resetFilters
   } = useEvents();
@@ -45,6 +46,7 @@ const Events = () => {
   // UI state
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
   const [selectedEventToJoin, setSelectedEventToJoin] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -120,7 +122,7 @@ const Events = () => {
   const handleJoinEvent = (eventId: string) => {
     const event = getEvent(eventId);
     if (event) {
-      selectEvent(eventId);
+      setSelectedEvent(event);
       setSelectedEventToJoin(null); // Reset selected event
       setIsJoinDialogOpen(true);
     }
@@ -150,7 +152,7 @@ const Events = () => {
   };
 
   const handleViewDetails = (eventId: string) => {
-    selectEvent(eventId);
+    navigate(ROUTES.EVENT_DETAILS(eventId));
   };
 
   const handleShare = (eventId: string) => {
@@ -319,10 +321,10 @@ const Events = () => {
                           <EventCard
                             key={event.id}
                             event={event}
-                            onViewDetails={() => handleViewDetails(event.id)}
-                            onJoin={() => handleJoinEvent(event.id)}
-                            onShare={() => handleShare(event.id)}
-                            onBookmark={() => handleBookmark(event.id)}
+                            onViewDetails={handleViewDetails}
+                            onJoin={handleJoinEvent}
+                            onShare={handleShare}
+                            onBookmark={handleBookmark}
                             daysUntil={calculateDaysUntil(event.date)}
                           />
                         ))}
@@ -467,15 +469,15 @@ const Events = () => {
                 <TabsContent value="attending" className="mt-4">
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredEvents
-                      .filter(event => event.attendees.some(attendee => attendee.id === "currentUser"))
+                      .filter(event => event.attendees?.some(attendee => attendee.id === "currentUser"))
                       .map((event) => (
                         <EventCard
                           key={event.id}
                           event={event}
-                          onViewDetails={() => handleViewDetails(event.id)}
-                          onJoin={() => handleJoinEvent(event.id)}
-                          onShare={() => handleShare(event.id)}
-                          onBookmark={() => handleBookmark(event.id)}
+                          onViewDetails={handleViewDetails}
+                          onJoin={handleJoinEvent}
+                          onShare={handleShare}
+                          onBookmark={handleBookmark}
                           daysUntil={calculateDaysUntil(event.date)}
                         />
                       ))}
@@ -485,15 +487,15 @@ const Events = () => {
                 <TabsContent value="hosting" className="mt-4">
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredEvents
-                      .filter(event => event.host.id === "current-user")
+                      .filter(event => event.host?.id === "current-user")
                       .map((event) => (
                         <EventCard
                           key={event.id}
                           event={event}
-                          onViewDetails={() => handleViewDetails(event.id)}
-                          onJoin={() => handleJoinEvent(event.id)}
-                          onShare={() => handleShare(event.id)}
-                          onBookmark={() => handleBookmark(event.id)}
+                          onViewDetails={handleViewDetails}
+                          onJoin={handleJoinEvent}
+                          onShare={handleShare}
+                          onBookmark={handleBookmark}
                           daysUntil={calculateDaysUntil(event.date)}
                         />
                       ))}
@@ -505,17 +507,17 @@ const Events = () => {
                     {filteredEvents
                       .filter(event => calculateDaysUntil(event.date) < 0)
                       .filter(event => 
-                        event.attendees.some(attendee => attendee.id === "currentUser") ||
-                        event.host.id === "current-user"
+                        event.attendees?.some(attendee => attendee.id === "currentUser") ||
+                        event.host?.id === "current-user"
                       )
                       .map((event) => (
                         <EventCard
                           key={event.id}
                           event={event}
-                          onViewDetails={() => handleViewDetails(event.id)}
-                          onJoin={() => handleJoinEvent(event.id)}
-                          onShare={() => handleShare(event.id)}
-                          onBookmark={() => handleBookmark(event.id)}
+                          onViewDetails={handleViewDetails}
+                          onJoin={handleJoinEvent}
+                          onShare={handleShare}
+                          onBookmark={handleBookmark}
                           daysUntil={calculateDaysUntil(event.date)}
                         />
                       ))}
@@ -526,19 +528,6 @@ const Events = () => {
           </div>
         </TabsContent>
       </Tabs>
-
-      {/* Event details dialog */}
-      {selectedEvent && (
-        <Dialog open={!!selectedEvent} onOpenChange={() => selectEvent(null)}>
-          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto p-0">
-            <EventDetailsView
-              event={selectedEvent}
-              onBack={() => selectEvent(null)}
-              onJoin={() => handleJoinEvent(selectedEvent.id)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
 
       {/* Join event dialog */}
       <Dialog open={isJoinDialogOpen} onOpenChange={setIsJoinDialogOpen}>
@@ -552,7 +541,7 @@ const Events = () => {
                 <h3 className="font-semibold mb-2">{selectedEvent.title}</h3>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  {selectedEvent.date} at {selectedEvent.time}
+                  <span>{selectedEvent.date} at {selectedEvent.time}</span>
                 </div>
                 <p>Select a dog to join with:</p>
                 <div className="grid gap-4 py-4">
@@ -560,7 +549,7 @@ const Events = () => {
                     <div className="space-y-4">
                       {dogs.map((dog) => {
                         // Check if dog is already attending
-                        const isAttending = selectedEvent.attendees.some(
+                        const isAttending = selectedEvent.attendees?.some(
                           (a) => a.id === dog.id
                         );
                         

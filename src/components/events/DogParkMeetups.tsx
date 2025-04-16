@@ -8,14 +8,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { format, addDays } from "date-fns";
+import { format, addDays, parse } from "date-fns";
 import { MapPin, Calendar, Clock, Users, ArrowRight, Plus, Search } from "lucide-react";
 import { DogProfile } from "@/lib/types";
+import { EventFormData } from "@/domains/events/types";
 
 interface DogParkMeetupsProps {
   userDogs: DogProfile[];
   userLocation?: { lat: number; lng: number } | null;
-  onCreateMeetup: (meetupData: any) => void;
+  onCreateMeetup: (meetupData: EventFormData, imageFile: File | null) => void;
   onJoinMeetup: (meetupId: string, dogId: string) => void;
 }
 
@@ -219,10 +220,51 @@ const DogParkMeetups: React.FC<DogParkMeetupsProps> = ({ userDogs, userLocation,
   });
   
   const handleCreateMeetup = () => {
-    onCreateMeetup({
-      ...newMeetupData,
-      parkName: selectedPark?.name
-    });
+    // Find the selected park
+    const park = mockDogParks.find(p => p.id === selectedParkId);
+    if (!park) return;
+    
+    // Find the selected dog
+    const dog = userDogs.find(d => d.id === newMeetupData.dogId);
+    if (!dog) return;
+    
+    // Format data for event creation
+    const eventData: EventFormData = {
+      title: newMeetupData.title,
+      shortDescription: `Dog park meetup at ${park.name}`,
+      description: newMeetupData.description,
+      date: format(parse(newMeetupData.date, 'yyyy-MM-dd', new Date()), 'MMM dd, yyyy'),
+      time: newMeetupData.time,
+      location: {
+        name: park.name,
+        address: park.address,
+        coordinates: park.coordinates
+      },
+      category: "Social",
+      avatar: park.images[0],
+      difficultyLevel: "Easy",
+      requiredAbilities: [],
+      suitableEnergyLevels: ["Low", "Medium", "High"],
+      suitableDogSizes: [newMeetupData.dogSizePreference === "Any" ? "Any" : 
+                        newMeetupData.dogSizePreference === "Small" ? "Small" : 
+                        newMeetupData.dogSizePreference === "Medium" ? "Medium" : "Large"],
+      minAge: 0,
+      maxAttendees: newMeetupData.maxAttendees,
+      tags: ["dogpark", "meetup", "social"],
+      host: {
+        id: "current-user",
+        name: "Your Name",
+        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e"
+      },
+      duration: newMeetupData.duration,
+      breedRecommendations: [],
+      notRecommendedFor: []
+    };
+    
+    // Create the event through the parent component
+    onCreateMeetup(eventData, null);
+    
+    // Close the dialog and reset form
     setIsCreateDialogOpen(false);
     setNewMeetupData({
       title: "",

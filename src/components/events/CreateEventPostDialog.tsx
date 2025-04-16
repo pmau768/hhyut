@@ -125,6 +125,14 @@ const CreateEventPostDialog = ({ onSubmit, isLoading }: CreateEventPostDialogPro
     const file = e.target.files?.[0];
     if (!file) return;
     
+    // Check file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert("Image size exceeds 5MB limit. Please select a smaller image.");
+      e.target.value = '';
+      return;
+    }
+    
     setImageFile(file);
     
     const reader = new FileReader();

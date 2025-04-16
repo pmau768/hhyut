@@ -21,7 +21,8 @@ const calculateCompatibility = (dog1: DogProfile, dog2: DogProfile): number => {
   let score = 50; // Base score
   
   // Size compatibility
-  if (dog1.preferredPlaymates?.sizes?.includes(getSizeByBreed(dog2.breed) as DogSize)) {
+  const size2 = getSizeByBreed(dog2.breed);
+  if (dog1.preferredPlaymates?.sizes?.includes(size2)) {
     score += 10;
   }
   
@@ -132,7 +133,7 @@ const PlaydateMatchFinder: React.FC<PlaydateMatchFinderProps> = ({ userDogs, onC
     }
     
     // In a real implementation, this would be an API call
-    const calculatedMatches = mockDogMatches.map(potentialMatch => {
+    const calculatedMatches = mockDogMatches.map((potentialMatch) => {
       const compatibilityScore = calculateCompatibility(selectedDog, potentialMatch);
       
       return {
@@ -169,7 +170,7 @@ const PlaydateMatchFinder: React.FC<PlaydateMatchFinderProps> = ({ userDogs, onC
     }).filter(match => match.compatibilityScore >= filters.minCompatibility);
     
     setMatches(calculatedMatches);
-  }, [selectedDogId, filters]);
+  }, [selectedDogId, filters, selectedDog]);
   
   if (userDogs.length === 0) {
     return (

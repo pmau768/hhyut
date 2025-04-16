@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { SignUpFormData, User } from "@/lib/types";
 import SignUpForm from "@/components/auth/SignUpForm";
 import { Button } from "@/components/ui/button";
+import AuthLayout from "@/components/layout/AuthLayout";
 import { useToast } from "@/hooks/use-toast";
 import { setUser } from "@/lib/localStorage";
 
@@ -33,7 +34,7 @@ const SignUp = () => {
       
       toast({
         title: "Account created successfully!",
-        description: `Welcome to Woofer, ${data.name}!`,
+        description: `Welcome to Dog Activity Tracker, ${data.name}!`,
       });
       
       navigate("/");
@@ -49,31 +50,25 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Create your account</h1>
-          <p className="text-muted-foreground mt-2">
-            Join our community of dog lovers
-          </p>
-        </div>
+    <AuthLayout 
+      title="Create your account"
+      subtitle="Join our community of dog lovers"
+    >
+      <SignUpForm onSubmit={handleSignUp} isLoading={isLoading} />
 
-        <SignUpForm onSubmit={handleSignUp} isLoading={isLoading} />
-
-        <div className="text-center space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Already have an account?
-          </p>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => navigate("/signin")}
-          >
-            Sign In
-          </Button>
-        </div>
+      <div className="text-center space-y-4 mt-6">
+        <p className="text-sm text-muted-foreground">
+          Already have an account?
+        </p>
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => navigate("/signin")}
+        >
+          Sign In
+        </Button>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 

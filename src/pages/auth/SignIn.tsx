@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { SignInFormData, User } from "@/lib/types";
 import SignInForm from "@/components/auth/SignInForm";
 import { Button } from "@/components/ui/button";
+import AuthLayout from "@/components/layout/AuthLayout";
 import { useToast } from "@/hooks/use-toast";
 import { getUser, setUser } from "@/lib/localStorage";
 
@@ -49,31 +50,25 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Welcome back</h1>
-          <p className="text-muted-foreground mt-2">
-            Sign in to your account
-          </p>
-        </div>
+    <AuthLayout 
+      title="Welcome back" 
+      subtitle="Sign in to your account"
+    >
+      <SignInForm onSubmit={handleSignIn} isLoading={isLoading} />
 
-        <SignInForm onSubmit={handleSignIn} isLoading={isLoading} />
-
-        <div className="text-center space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Don't have an account?
-          </p>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => navigate("/signup")}
-          >
-            Create Account
-          </Button>
-        </div>
+      <div className="text-center space-y-4 mt-6">
+        <p className="text-sm text-muted-foreground">
+          Don't have an account?
+        </p>
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => navigate("/signup")}
+        >
+          Create Account
+        </Button>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 

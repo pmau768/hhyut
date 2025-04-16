@@ -1,17 +1,19 @@
 import { Event, DogProfile } from "@/lib/types";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Users, Share2, Bookmark, Clock3 } from "lucide-react";
+import { Calendar, MapPin, Users, Share2, Bookmark, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ROUTES } from "@/lib/services/routes";
 import { EventCompatibility } from "./EventCompatibility";
 import { formatDateForDisplay, getLocationProperty } from "@/lib/utils";
 
 interface EventCardProps {
   event: Event;
   onJoin: (eventId: string) => void;
-  onViewDetails: (eventId: string) => void;
-  onShare: (eventId: string) => void;
-  onBookmark: (eventId: string) => void;
+  onViewDetails?: (eventId: string) => void;
+  onShare?: (eventId: string) => void;
+  onBookmark?: (eventId: string) => void;
   matchingDog?: DogProfile | null;
   daysUntil?: number;
 }
@@ -23,85 +25,52 @@ const EventCard = ({
   onShare, 
   onBookmark,
   matchingDog,
-  daysUntil
+  daysUntil 
 }: EventCardProps) => {
   return (
-    <Card className="overflow-hidden flex flex-col">
-      <div 
-        className="h-40 bg-cover bg-center relative"
-        style={{ backgroundImage: `url(${event.imageUrl})` }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-bold text-white line-clamp-1">
-              {event.title}
-            </h3>
-            
-            {/* Difficulty level badge */}
-            {event.difficultyLevel && (
-              <Badge 
-                variant={
-                  event.difficultyLevel === "Easy" 
-                    ? "default"
-                    : event.difficultyLevel === "Moderate"
-                    ? "secondary"
-                    : "destructive"
-                }
-              >
-                {event.difficultyLevel}
-              </Badge>
-            )}
-          </div>
-          
-          <div className="text-sm text-white/80 line-clamp-1 mt-1">
-            {event.shortDescription}
-          </div>
-        </div>
-        
-        {/* Countdown Badge */}
-        {typeof daysUntil === 'number' && (
-          <div className="absolute top-3 right-3">
-            <Badge 
-              variant={daysUntil <= 3 ? "destructive" : daysUntil <= 7 ? "secondary" : "outline"}
-              className="text-xs font-semibold bg-black/70 backdrop-blur-sm border-none text-white"
-            >
-              {daysUntil === 0 ? (
-                "Today!"
-              ) : daysUntil < 0 ? (
-                "Passed"
-              ) : (
-                <>
-                  <Clock3 className="w-3 h-3 mr-1" />
-                  {daysUntil} day{daysUntil !== 1 ? 's' : ''} until event
-                </>
-              )}
-            </Badge>
-          </div>
+    <Card className="overflow-hidden flex flex-col h-full">
+      <div className="relative w-full h-48 overflow-hidden">
+        <Link to={ROUTES.EVENT_DETAILS(event.id)}>
+          <img 
+            src={event.avatar || event.imageUrl || "https://via.placeholder.com/400x200"} 
+            alt={event.title}
+            className="w-full h-full object-cover transition-transform hover:scale-105" 
+          />
+        </Link>
+        {daysUntil !== undefined && daysUntil <= 3 && daysUntil >= 0 && (
+          <Badge className="absolute top-2 right-2 bg-red-500">
+            {daysUntil === 0 ? "Today" : `${daysUntil} day${daysUntil !== 1 ? 's' : ''}`}
+          </Badge>
         )}
+        <Badge variant="secondary" className="absolute top-2 left-2">
+          {event.category}
+        </Badge>
       </div>
       
-      <CardContent className="p-4 flex-grow flex flex-col">
-        <div className="space-y-1 mb-3">
-          {/* Date and time */}
-          <div className="flex items-center text-sm text-muted-foreground mb-1">
-            <Calendar className="mr-1 h-3.5 w-3.5" />
-            {formatDateForDisplay(event.date)} • {event.time}
-          </div>
-
-          {/* Location */}
-          <div className="flex items-center text-sm text-muted-foreground mb-1">
-            <MapPin className="mr-1 h-3.5 w-3.5" />
-            {getLocationProperty(event.location, 'name')}
-          </div>
-
-          {/* Attendees */}
-          <div className="flex items-center text-sm text-muted-foreground mb-1">
-            <Users className="mr-1 h-3.5 w-3.5" />
-            {event.attendees?.length || 0} / {event.maxAttendees || 0} attendees
-          </div>
+      <CardHeader className="pb-2">
+        <Link 
+          to={ROUTES.EVENT_DETAILS(event.id)}
+          className="text-lg font-semibold leading-tight hover:underline"
+        >
+          {event.title}
+        </Link>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="h-3.5 w-3.5" />
+          <span>{formatDateForDisplay(event.date)} {event.time && `• ${event.time}`}</span>
         </div>
-        
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MapPin className="h-3.5 w-3.5" />
+          <span>{getLocationProperty(event.location, 'name')}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Users className="h-3.5 w-3.5" />
+          <span>
+            {event.attendees?.length || 0} / {event.maxAttendees || 0} attendees
+          </span>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="pb-2 flex-grow">
         {/* Dog compatibility section */}
         {matchingDog && (
           <div className="mb-4 mt-1 border-t pt-3">
@@ -111,47 +80,37 @@ const EventCard = ({
             />
           </div>
         )}
+        <p className="text-muted-foreground text-sm line-clamp-2">
+          {event.shortDescription || event.description}
+        </p>
+      </CardContent>
+      
+      <CardFooter className="pt-0 flex justify-between">
+        <div className="flex space-x-1">
+          {onShare && (
+            <Button variant="ghost" size="icon" onClick={() => onShare(event.id)}>
+              <Share2 className="h-4 w-4" />
+            </Button>
+          )}
+          {onBookmark && (
+            <Button variant="ghost" size="icon" onClick={() => onBookmark(event.id)}>
+              <Bookmark className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
         
-        <div className="flex gap-2 mt-auto pt-4">
-          <Button 
-            variant="default" 
-            className="flex-1"
-            onClick={() => onViewDetails(event.id)}
-          >
-            View Details
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link to={ROUTES.EVENT_DETAILS(event.id)}>
+              <ExternalLink className="h-4 w-4 mr-1" />
+              View
+            </Link>
           </Button>
-          
-          <Button 
-            variant="outline" 
-            className="flex-1"
-            onClick={() => onJoin(event.id)}
-          >
+          <Button size="sm" onClick={() => onJoin(event.id)}>
             Join
           </Button>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              onShare(event.id);
-            }}
-          >
-            <Share2 className="h-4 w-4" />
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              onBookmark(event.id);
-            }}
-          >
-            <Bookmark className="h-4 w-4" />
-          </Button>
         </div>
-      </CardContent>
+      </CardFooter>
     </Card>
   );
 };

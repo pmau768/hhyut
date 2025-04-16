@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays } from "date-fns";
-import { MapPin, Calendar, Clock, Users, ArrowRight, Plus, Search, PawPrint } from "lucide-react";
+import { MapPin, Calendar, Clock, Users, ArrowRight, Plus, Search } from "lucide-react";
 import { DogProfile } from "@/lib/types";
 
 interface DogParkMeetupsProps {

@@ -10,6 +10,7 @@ import SignIn from "@/pages/auth/SignIn";
 import SignUp from "@/pages/auth/SignUp";
 import { TAB_VALUES, getTabFromRoute } from "@/lib/services/routes";
 import { useState, useEffect } from "react";
+import { getUser } from "@/lib/localStorage";
 
 // AppContent component to handle tab state based on current route
 const AppContent = () => {
@@ -56,8 +57,19 @@ const AppContent = () => {
 };
 
 function App() {
-  // TODO: Replace with actual auth state when adding Supabase
-  const isAuthenticated = true;
+  // Use local storage to determine authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  useEffect(() => {
+    try {
+      // Check if user exists in localStorage
+      const user = getUser();
+      setIsAuthenticated(!!user && !!user.id);
+    } catch (error) {
+      console.error("Error checking authentication state:", error);
+      setIsAuthenticated(false);
+    }
+  }, []);
 
   if (!isAuthenticated) {
     return (

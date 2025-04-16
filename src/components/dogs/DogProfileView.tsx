@@ -113,25 +113,25 @@ const DogProfileView = ({ dog }: DogProfileViewProps) => {
         <StatCard
           icon={Route}
           label="Total Distance"
-          value={dog.stats.totalDistance}
+          value={dog.stats?.totalDistance ?? 0}
           unit="km"
         />
         <StatCard
           icon={Activity}
           label="Activities"
-          value={dog.stats.totalActivities}
+          value={dog.stats?.totalActivities ?? 0}
           unit="total"
         />
         <StatCard
           icon={Clock}
           label="Avg Duration"
-          value={dog.stats.avgDuration}
+          value={dog.stats?.avgDuration ?? 0}
           unit="min"
         />
         <StatCard
           icon={Award}
           label="Current Streak"
-          value={dog.stats.streak}
+          value={dog.stats?.streak ?? 0}
           unit="days"
         />
       </div>
@@ -162,7 +162,7 @@ const DogProfileView = ({ dog }: DogProfileViewProps) => {
 
           <TabsContent value="activities" className="p-0">
             <ScrollArea className="h-[400px]">
-              {dog.activities.map((activity) => (
+              {dog.activities?.map((activity) => (
                 <ActivityItem key={activity.id} activity={activity} />
               ))}
             </ScrollArea>

@@ -6,6 +6,7 @@ import { Calendar, Clock, MapPin, Dog } from "lucide-react";
 import { EventCompatibility } from "./EventCompatibility";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { formatDateForDisplay, getLocationProperty } from "@/lib/utils";
 
 interface DogRecommendedEventsProps {
   dog: DogProfile;
@@ -123,13 +124,15 @@ export function DogRecommendedEvents({
                     </div>
                     <div className="flex items-center text-xs text-muted-foreground">
                       <Calendar className="w-3 h-3 mr-1" />
-                      {event.date} • 
+                      {formatDateForDisplay(event.date)} • 
                       <Clock className="w-3 h-3 mx-1" />
                       {event.time}
                     </div>
                     <div className="flex items-center text-xs text-muted-foreground">
                       <MapPin className="w-3 h-3 mr-1" />
-                      {event.location.name}
+                      {typeof event.location === 'string' 
+                        ? event.location 
+                        : event.location.name}
                     </div>
                     <div className="text-xs text-muted-foreground line-clamp-1 mt-1">
                       {event.shortDescription}

@@ -1,14 +1,21 @@
 import { useState, useEffect } from "react";
-import { Event } from "@/lib/types";
+import { Event } from "@/domains/events/types";
+import { useEvents } from "@/domains/events/hooks/useEvents";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LocateIcon, Calendar, Clock } from "lucide-react";
+import { LocateIcon, Calendar, Clock, MapPin } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
 interface NearbyEventsListProps {
-  events: Event[];
+  userLocation: {
+    latitude: number | null;
+    longitude: number | null;
+    loading: boolean;
+    error: string | null;
+  };
   onViewDetails: (eventId: string) => void;
+  onJoin?: (eventId: string) => void;
   maxDistance?: number; // in kilometers
 }
 
@@ -38,57 +45,23 @@ const deg2rad = (deg: number): number => {
 };
 
 const NearbyEventsList = ({
-  events,
+  userLocation,
   onViewDetails,
+  onJoin,
   maxDistance = 10,
 }: NearbyEventsListProps) => {
-  const [userLocation, setUserLocation] = useState<{
-    latitude: number | null;
-    longitude: number | null;
-    loading: boolean;
-    error: string | null;
-  }>({
-    latitude: null,
-    longitude: null,
-    loading: true,
-    error: null,
-  });
+  // Use events hook instead of passing events as props
+  const { events, loading, error } = useEvents();
+  const [nearbyEvents, setNearbyEvents] = useState<Array<Event & { distance: number }>>([]);
 
-  const [nearbyEvents, setNearbyEvents] = useState<
-    Array<Event & { distance: number }>
-  >([]);
-
-  // Get user's location when component mounts
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      setUserLocation({
-        latitude: null,
-        longitude: null,
-        loading: false,
-        error: "Geolocation is not supported by your browser",
-      });
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          loading: false,
-          error: null,
-        });
-      },
-      (error) => {
-        setUserLocation({
-          latitude: null,
-          longitude: null,
-          loading: false,
-          error: `Unable to retrieve your location: ${error.message}`,
-        });
-      }
-    );
-  }, []);
+  // Calculate days until event starts
+  const calculateDaysUntil = (eventDate: string) => {
+    const today = new Date();
+    const date = new Date(eventDate);
+    const diffTime = date.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
 
   // Filter events by distance when user location or events change
   useEffect(() => {
@@ -103,6 +76,10 @@ const NearbyEventsList = ({
 
     const eventsWithDistance = events
       .map((event) => {
+        if (!event.location.coordinates) {
+          return { ...event, distance: Infinity };
+        }
+        
         const distance = calculateDistance(
           userLocation.latitude!,
           userLocation.longitude!,
@@ -117,7 +94,7 @@ const NearbyEventsList = ({
     setNearbyEvents(eventsWithDistance);
   }, [events, userLocation, maxDistance]);
 
-  if (userLocation.loading) {
+  if (loading || userLocation.loading) {
     return (
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Events Near You</h3>
@@ -154,34 +131,32 @@ const NearbyEventsList = ({
               variant="outline" 
               size="sm" 
               className="mt-3"
-              onClick={() => {
-                setUserLocation({
-                  latitude: null,
-                  longitude: null,
-                  loading: true,
-                  error: null,
-                });
-                navigator.geolocation.getCurrentPosition(
-                  (position) => {
-                    setUserLocation({
-                      latitude: position.coords.latitude,
-                      longitude: position.coords.longitude,
-                      loading: false,
-                      error: null,
-                    });
-                  },
-                  (error) => {
-                    setUserLocation({
-                      latitude: null,
-                      longitude: null,
-                      loading: false,
-                      error: `Unable to retrieve your location: ${error.message}`,
-                    });
-                  }
-                );
-              }}
+              onClick={() => window.location.reload()}
             >
               Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Events Near You</h3>
+        <Card className="bg-muted/30">
+          <CardContent className="p-4 text-center">
+            <p className="text-muted-foreground text-sm">
+              Error loading events. Please try again.
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-3"
+              onClick={() => window.location.reload()}
+            >
+              Reload
             </Button>
           </CardContent>
         </Card>
@@ -205,41 +180,81 @@ const NearbyEventsList = ({
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Events Near You</h3>
-      <div className="space-y-3">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Events Near You</h3>
+        <span className="text-xs text-muted-foreground">
+          Within {maxDistance} km
+        </span>
+      </div>
+
+      <div className="space-y-4">
         {nearbyEvents.map((event) => (
-          <Card 
-            key={event.id}
-            className="hover:bg-muted/10 transition-colors cursor-pointer"
-            onClick={() => onViewDetails(event.id)}
-          >
-            <CardContent className="p-4">
-              <div className="flex gap-3">
-                <div 
-                  className="w-16 h-16 rounded-md bg-cover bg-center"
-                  style={{ backgroundImage: `url(${event.imageUrl})` }}
-                />
-                <div className="space-y-1 flex-1">
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-medium line-clamp-1">{event.title}</h4>
-                    <Badge variant="outline">
-                      {event.distance} km
+          <Card key={event.id} className="overflow-hidden">
+            <div className="flex">
+              {/* Event image */}
+              <div 
+                className="w-24 h-auto bg-cover bg-center hidden sm:block"
+                style={{ backgroundImage: `url(${event.avatar})` }}
+              />
+              
+              {/* Event details */}
+              <CardContent className="p-4 flex-1">
+                <div className="flex flex-col h-full justify-between">
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <h4 className="font-semibold line-clamp-1 flex-1" onClick={() => onViewDetails(event.id)}>
+                        {event.title}
+                      </h4>
+                      <Badge variant="outline" className="ml-2">
+                        {event.distance} km
+                      </Badge>
+                    </div>
+                    
+                    <div className="mt-2 flex items-center text-sm text-muted-foreground">
+                      <Calendar className="w-3.5 h-3.5 mr-1" />
+                      {event.date} •
+                    </div>
+                    
+                    <div className="mt-1 flex items-center text-sm text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5 mr-1" />
+                      {event.time}
+                    </div>
+                    
+                    <div className="mt-1 flex items-center text-sm text-muted-foreground">
+                      <MapPin className="w-3.5 h-3.5 mr-1" />
+                      {event.location.name}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center mt-3">
+                    <Badge variant="secondary">
+                      {event.category}
                     </Badge>
-                  </div>
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    {event.date} • 
-                    <Clock className="w-3 h-3 mx-1" />
-                    {event.time}
-                  </div>
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <LocateIcon className="w-3 h-3 mr-1" />
-                    {event.location.name}
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => onViewDetails(event.id)}
+                      >
+                        Details
+                      </Button>
+                      
+                      {onJoin && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => onJoin(event.id)}
+                          disabled={event.status === 'Full'}
+                        >
+                          Join
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
+              </CardContent>
+            </div>
           </Card>
         ))}
       </div>
